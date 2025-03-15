@@ -113,6 +113,10 @@ First, pull (download) the image with the following command, replacing your user
 
 ```docker pull <dockerhub_username>/<dockerhub_repo_name>```
 
+Then, run the image in a container with the following command, again replacing _<dockerhub_username>_ and _<dockerhub_repo_name>_ accordingly.
+
+```docker run -p 3000:3000 <dockerhub_username>/<dockerhub_repo_name>```
+
 <br>
 <br>
 <br>
@@ -120,8 +124,3 @@ First, pull (download) the image with the following command, replacing your user
 ## Misc
 
 Just a commit to test the deployment.
-
-
-Then, run the image in a container with the following command, again replacing _<dockerhub_username>_ and _<dockerhub_repo_name>_ accordingly.
-
-```docker run -p 3000:3000 <dockerhub_username>/<dockerhub_repo_name>```
