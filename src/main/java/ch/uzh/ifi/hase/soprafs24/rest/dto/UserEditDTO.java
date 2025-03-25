@@ -1,15 +1,18 @@
 package ch.uzh.ifi.hase.soprafs24.rest.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDate;
 
-public class UserPostDTO {
+public class UserEditDTO {
 
     private Long id;
     private String username;
-    private String password;
+    private LocalDate birthday;
 
+    @JsonProperty("id")
     public Long getId() {
-        return this.id;
+        return id;
     }
 
     public void setId(Long id) {
@@ -24,11 +27,11 @@ public class UserPostDTO {
         this.username = username;
     }
 
-    public String getPassword() {
-        return password;
+    public LocalDate getBirthday() {
+        return birthday;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
     }
 }

@@ -2,78 +2,108 @@ package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserEditDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserLoginDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserLogoutDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 
+
+import java.time.LocalDate;
 import java.util.List;
-import java.util.UUID;
 
-/**
- * User Service
- * This class is the "worker" and responsible for all functionality related to
- * the user
- * (e.g., it creates, modifies, deletes, finds). The result will be passed back
- * to the caller.
- */
 @Service
-@Transactional
 public class UserService {
 
-  private final Logger log = LoggerFactory.getLogger(UserService.class);
+    // private static final Logger log = LoggerFactory.getLogger(UserService.class); // Maybe useful later
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
-  private final UserRepository userRepository;
-
-  @Autowired
-  public UserService(@Qualifier("userRepository") UserRepository userRepository) {
-    this.userRepository = userRepository;
-  }
-
-  public List<User> getUsers() {
-    return this.userRepository.findAll();
-  }
-
-  public User createUser(User newUser) {
-    newUser.setToken(UUID.randomUUID().toString());
-    newUser.setStatus(UserStatus.OFFLINE);
-    checkIfUserExists(newUser);
-    // saves the given entity but data is only persisted in the database once
-    // flush() is called
-    newUser = userRepository.save(newUser);
-    userRepository.flush();
-
-    log.debug("Created Information for User: {}", newUser);
-    return newUser;
-  }
-
-  /**
-   * This is a helper method that will check the uniqueness criteria of the
-   * username and the name
-   * defined in the User entity. The method will do nothing if the input is unique
-   * and throw an error otherwise.
-   *
-   * @param userToBeCreated
-   * @throws org.springframework.web.server.ResponseStatusException
-   * @see User
-   */
-  private void checkIfUserExists(User userToBeCreated) {
-    User userByUsername = userRepository.findByUsername(userToBeCreated.getUsername());
-    User userByName = userRepository.findByName(userToBeCreated.getName());
-
-    String baseErrorMessage = "The %s provided %s not unique. Therefore, the user could not be created!";
-    if (userByUsername != null && userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          String.format(baseErrorMessage, "username and the name", "are"));
-    } else if (userByUsername != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "username", "is"));
-    } else if (userByName != null) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format(baseErrorMessage, "name", "is"));
+    @Autowired
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.jwtUtil = jwtUtil;
     }
-  }
+
+    public User createUser(UserPostDTO userPostDTO) {
+
+        // Check if the username already exists in the database
+        if (userRepository.findByUsername(userPostDTO.getUsername()) != null) {
+            return null; // Username already exists
+        }
+
+        // Set params
+        User newUser = new User();
+        newUser.setUsername(userPostDTO.getUsername());
+        newUser.setPassword(new BCryptPasswordEncoder().encode(userPostDTO.getPassword()));
+        newUser.setCreationDate(LocalDate.now());
+        newUser.setStatus(UserStatus.OFFLINE);
+
+        // Save to database
+        User savedUser = userRepository.save(newUser);
+
+        // Find user, use id to create access token and save
+        User user = userRepository.findByUsername(savedUser.getUsername());
+        user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
+        user.setStatus(UserStatus.ONLINE);
+        return userRepository.save(user);
+    }
+
+    public User login(UserLoginDTO userLoginDTO) {
+        User user = userRepository.findByUsername(userLoginDTO.getUsername());
+
+        // Does user with username exist?
+        if (user == null) {
+            return null;
+        }
+
+        // Is password correct?
+        if (userLoginDTO.getPassword() == null) {
+            return null;
+        }
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        if (encoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
+            // Set and store data
+            user.setStatus(UserStatus.ONLINE);
+            user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
+            return userRepository.save(user);
+        }
+        return null;
+    }
+
+    public User editUser(UserEditDTO userEditDTO) {
+        User user = getUser(userEditDTO.getId());
+        if (user == null) {
+            return null; // user not found
+        }
+        if (userEditDTO.getUsername() != null) {
+            user.setUsername(userEditDTO.getUsername());
+        }
+        if (userEditDTO.getBirthday() != null) {
+            user.setBirthday(userEditDTO.getBirthday());
+        }
+        return userRepository.save(user);
+    }
+
+    public List<User> getUsers() {
+        return userRepository.findAll();
+    }
+
+    public User getUser(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public void logout(UserLogoutDTO userLogoutDTO) {
+        User user = userRepository.findUserById(userLogoutDTO.getId());
+        user.setStatus(UserStatus.OFFLINE);
+        user.setAccessToken(null);
+        userRepository.save(user);
+    }
 }
