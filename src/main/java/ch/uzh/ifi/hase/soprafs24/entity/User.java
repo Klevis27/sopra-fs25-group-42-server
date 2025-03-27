@@ -3,7 +3,9 @@ package ch.uzh.ifi.hase.soprafs24.entity;
 import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 
 import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
 
 /**
  * Internal User Representation
@@ -19,61 +21,106 @@ import java.io.Serializable;
 @Table(name = "USER")
 public class User implements Serializable {
 
-  private static final long serialVersionUID = 1L;
+    // DECLARATIONS
 
-  @Id
-  @GeneratedValue
-  private Long id;
+    @Serial
+    private static final long serialVersionUID = 1L;
 
-  @Column(nullable = false)
-  private String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-  @Column(nullable = false, unique = true)
-  private String username;
+    // Username
+    @Column(nullable = false, unique = true)
+    private String username;
 
-  @Column(nullable = false, unique = true)
-  private String token;
+    // Password
+    @Column(nullable = false)
+    private String password;
 
-  @Column(nullable = false)
-  private UserStatus status;
+    // Creation Date
+    @Column(nullable = false)
+    private LocalDate creationDate;
 
-  public Long getId() {
-    return id;
-  }
+    // Birthday
+    @Column
+    private LocalDate birthday;
 
-  public void setId(Long id) {
-    this.id = id;
-  }
+    // Status
+    @Column(nullable = false)
+    private UserStatus status; // TODO When accessToken expires status = OFFLINE, I can't be bothered rn
 
-  public String getName() {
-    return name;
-  }
+    // Access Token
+    @Column
+    private String accessToken;
 
-  public void setName(String name) {
-    this.name = name;
-  }
+    // METHODS
 
-  public String getUsername() {
-    return username;
-  }
+    public Long getId() {
+        return id;
+    }
 
-  public void setUsername(String username) {
-    this.username = username;
-  }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-  public String getToken() {
-    return token;
-  }
+    //
 
-  public void setToken(String token) {
-    this.token = token;
-  }
+    public String getUsername() {
+        return username;
+    }
 
-  public UserStatus getStatus() {
-    return status;
-  }
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
-  public void setStatus(UserStatus status) {
-    this.status = status;
-  }
+    //
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    //
+
+    public LocalDate getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDate creation_date) {
+        this.creationDate = creation_date;
+    }
+
+    //
+
+    public LocalDate getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
+    }
+
+    //
+
+    public UserStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
+
+    //
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
 }
