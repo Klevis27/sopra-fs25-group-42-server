@@ -123,4 +123,4 @@ Then, run the image in a container with the following command, again replacing _
 
 ## Misc
 
-Just a commit to test the deployment.
+Just a commit to test the dockerization.
