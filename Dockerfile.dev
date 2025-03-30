@@ -1,0 +1,9 @@
+FROM gradle:7.6-jdk17 as build
+WORKDIR /app
+COPY . /app
+RUN gradle clean build --no-daemon
+
+FROM openjdk:17-slim
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar /app/soprafs25.jar
+CMD ["java", "-jar", "/app/soprafs25.jar"]

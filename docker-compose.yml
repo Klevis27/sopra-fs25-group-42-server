@@ -1,0 +1,43 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: sopra-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DATABASE_HOST: mariadb-dev
+      DATABASE_PORT: 3306
+      DATABASE_USER: dev
+      DATABASE_PASSWORD: dev
+      DATABASE_NAME: sopra-mariadb-dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mariadb-dev
+    networks:
+      - sopra-network
+
+  mariadb-dev:
+    image: mariadb:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: sopra-mariadb-dev
+      MYSQL_USER: dev
+      MYSQL_PASSWORD: dev
+    ports:
+      - "3306:3306"
+    networks:
+      - sopra-network
+
+  adminer:
+    image: adminer
+    ports:
+      - "8081:8080"
+    networks:
+      - sopra-network
+
+networks:
+  sopra-network:
+    driver: bridge

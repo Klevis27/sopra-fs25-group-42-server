@@ -32,7 +32,6 @@ public class SecurityConfig {
                 .cors().and()  // Enable CORS
                 .csrf().disable()  // CSRF deaktivieren (wenn kein Session-Login)
                 .authorizeRequests()
-                .antMatchers("/h2-console/**").permitAll()  // H2 Console erlauben
                 .antMatchers(HttpMethod.POST, "/users", "/login", "/logout", "/edit").permitAll()  // Register/Login/Logout erlauben
                 .antMatchers(HttpMethod.GET, "/**").permitAll()  // Alle GET-Anfragen erlauben
                 .antMatchers(HttpMethod.PUT, "/users/**").permitAll()

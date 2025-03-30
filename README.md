@@ -121,6 +121,38 @@ Then, run the image in a container with the following command, again replacing _
 <br>
 <br>
 
-## Misc
+## Development Setup
 
-Just a commit to test the dockerization.
+### Prerequisites
+Docker and Docker Compose installed.
+
+### Steps to Set Up
+
+Start the Services: From the project root, run:
+
+```bash
+docker-compose up --build
+```
+
+This will build and start the following services:
+
+- Backend: Spring Boot application running on localhost:8080.
+- MariaDB: Database accessible within the Docker network.
+- Adminer: Web-based database management tool accessible at localhost:8081.
+
+### Access the Services:
+
+- Backend: Open your browser and go to http://localhost:8080.
+- Adminer: Open your browser and go to http://localhost:8081. Use the following credentials to log in:
+  - System: MariaDB 
+  - Server: mariadb-dev 
+  - Username: dev 
+  - Password: dev 
+  - Database: sopra-mariadb-dev
+
+### Stopping the Services:
+To stop the services, run:
+
+```bash
+docker-compose down
+```

@@ -1,0 +1,22 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod  # Production Dockerfile
+    image: sopra-backend-prod
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DATABASE_HOST: 80.74.149.100  # The production DB IP or hostname
+      DATABASE_PORT: 3306
+      DATABASE_USER: your_db_user  # Production DB username
+      DATABASE_PASSWORD: your_db_password  # Production DB password
+      DATABASE_NAME: sopra-fs25-group-42-db-production  # The database name
+    ports:
+      - "8080:8080"
+    networks:
+      - sopra-network
+
+networks:
+  sopra-network:
+    driver: bridge
