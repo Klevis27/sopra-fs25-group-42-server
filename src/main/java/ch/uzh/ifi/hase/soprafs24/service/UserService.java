@@ -1,11 +1,11 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.entity.Vault;
+import ch.uzh.ifi.hase.soprafs24.entity.VaultPermission;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.UserEditDTO;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.UserLoginDTO;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.UserLogoutDTO;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.UserPostDTO;
+import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -25,7 +26,7 @@ public class UserService {
     private final JwtUtil jwtUtil;
 
     @Autowired
-    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
     }
