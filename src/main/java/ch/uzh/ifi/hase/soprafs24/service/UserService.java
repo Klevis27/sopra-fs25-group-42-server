@@ -1,6 +1,5 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
-import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.UserEditDTO;
@@ -43,7 +42,6 @@ public class UserService {
         newUser.setUsername(userPostDTO.getUsername());
         newUser.setPassword(new BCryptPasswordEncoder().encode(userPostDTO.getPassword()));
         newUser.setCreationDate(LocalDate.now());
-        newUser.setStatus(UserStatus.OFFLINE);
 
         // Save to database
         User savedUser = userRepository.save(newUser);
@@ -51,7 +49,6 @@ public class UserService {
         // Find user, use id to create access token and save
         User user = userRepository.findByUsername(savedUser.getUsername());
         user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
-        user.setStatus(UserStatus.ONLINE);
         return userRepository.save(user);
     }
 
@@ -71,7 +68,6 @@ public class UserService {
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         if (encoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
             // Set and store data
-            user.setStatus(UserStatus.ONLINE);
             user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
             return userRepository.save(user);
         }
@@ -86,9 +82,6 @@ public class UserService {
         if (userEditDTO.getUsername() != null) {
             user.setUsername(userEditDTO.getUsername());
         }
-        if (userEditDTO.getBirthday() != null) {
-            user.setBirthday(userEditDTO.getBirthday());
-        }
         return userRepository.save(user);
     }
 
@@ -102,7 +95,6 @@ public class UserService {
 
     public void logout(UserLogoutDTO userLogoutDTO) {
         User user = userRepository.findUserById(userLogoutDTO.getId());
-        user.setStatus(UserStatus.OFFLINE);
         user.setAccessToken(null);
         userRepository.save(user);
     }
