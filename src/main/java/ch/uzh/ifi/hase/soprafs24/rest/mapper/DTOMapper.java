@@ -1,6 +1,8 @@
 package ch.uzh.ifi.hase.soprafs24.rest.mapper;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Note;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
@@ -46,4 +48,17 @@ public interface DTOMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "username", target = "username")
     UserEditDTO convertEntityToUserEditDTO(User user);
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    @Mapping(source = "owner", target = "owner")
+    VaultPostDTO convertEntityToVaultPostDTO(Vault vault);
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "title", target = "title")
+    NotesGetDTO convertEntityToNotesGetDTO(Note note);
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "name", target = "name")
+    VaultsGetDTO convertEntityToVaultsGetDTO(Vault vault);
 }
