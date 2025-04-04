@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .cors().and()  // Enable CORS
                 .csrf().disable()  // CSRF deaktivieren (wenn kein Session-Login)
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, "/users", "/login", "/logout", "/edit", "/vaults", "vaults/**").permitAll()  // Register/Login/Logout erlauben
+                .antMatchers(HttpMethod.POST, "/users", "/login", "/logout", "/edit", "/vaults", "/vaults/**").permitAll()  // Register/Login/Logout erlauben
                 .antMatchers(HttpMethod.GET, "/**").permitAll()  // Alle GET-Anfragen erlauben
                 .antMatchers(HttpMethod.PUT, "/users/**").permitAll()
                 .anyRequest().authenticated()  // Alle anderen Anfragen brauchen Auth
