@@ -29,7 +29,7 @@ public class VaultController {
     }
 
     // Create Vault
-    @PostMapping("/vault")
+    @PostMapping("/vaults")
     public ResponseEntity<Map<String, Object>> register(@RequestBody VaultPostDTO vaultPostDTO, HttpServletRequest request) {
         // Extract token from the Authorization header
         String token = extractTokenFromRequest(request);
