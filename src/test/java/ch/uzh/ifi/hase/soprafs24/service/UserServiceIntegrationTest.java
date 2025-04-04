@@ -59,7 +59,7 @@ public class UserServiceIntegrationTest {
         UserPostDTO testUser = new UserPostDTO();
         testUser.setUsername("testUsername");
         testUser.setPassword("password");
-        User createdUser = userService.createUser(testUser);
+        //User createdUser = userService.createUser(testUser);
 
         // attempt to create second user with same username
         UserPostDTO testUser2 = new UserPostDTO();
