@@ -8,7 +8,6 @@ import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NotesGetDTO;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.UserGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.NoteService;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
@@ -19,8 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class NoteController {
+
     private final VaultService vaultService;
     private final JwtUtil jwtUtil;
     private final VaultRepository vaultRepository;
@@ -28,7 +29,8 @@ public class NoteController {
     private final NoteService noteService;
     private final UserRepository userRepository;
 
-    public NoteController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository, NoteRepository noteRepository, NoteService noteService, UserRepository userRepository) {
+    public NoteController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository,
+                          NoteRepository noteRepository, NoteService noteService, UserRepository userRepository) {
         this.vaultService = vaultService;
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
@@ -37,35 +39,26 @@ public class NoteController {
         this.userRepository = userRepository;
     }
 
-    // Get Notes
     @GetMapping("/vaults/{vault_id}/notes")
-    public ResponseEntity<List<NotesGetDTO>> profile(@PathVariable("vault_id") Long id, HttpServletRequest request) {
-        // Extract token from the Authorization header
+    public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable("vault_id") Long id, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        // Check if Vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(id);
         if (vaultOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
         Vault vault = vaultOptional.get();
 
-        // Check if user has right to vault
         User user = vault.getOwner();
         if (!Objects.equals(jwtUtil.extractId(token), user.getId().toString())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        // TODO check if user has right to vault also in permissions table
-
-        // Fetch notes in vault, map and return
         List<Note> notes = noteRepository.findAllByVault(vault);
-
         List<NotesGetDTO> notesGetDTOs = new ArrayList<>();
-
         for (Note note : notes) {
             notesGetDTOs.add(DTOMapper.INSTANCE.convertEntityToNotesGetDTO(note));
         }
@@ -73,12 +66,10 @@ public class NoteController {
         return ResponseEntity.ok(notesGetDTOs);
     }
 
-    // Helper method to extract token from the Authorization header
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Remove "Bearer " prefix
+            return bearerToken.substring(7);
         }
         return null;
     }
