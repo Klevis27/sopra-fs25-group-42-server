@@ -25,7 +25,7 @@ public class JwtUtil {
         return Jwts.builder()
                 .claims(claims)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 14))
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24 * 14)) // 14 Days expiration = no automatic logout
                 .signWith(key)
                 .compact();
     }
@@ -59,14 +59,17 @@ public class JwtUtil {
                 .getPayload();
     }
 
+    // Check if the token is expired
     public boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
+    // Extract expiration date from token
     public Date extractExpiration(String token) {
         return extractClaims(token).getExpiration();
     }
 
+    // Validate the token
     public boolean validateToken(String token, String id) {
         return (id.equals(extractId(token)) && !isTokenExpired(token));
     }

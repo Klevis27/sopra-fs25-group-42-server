@@ -18,10 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class NoteController {
-
     private final VaultService vaultService;
     private final JwtUtil jwtUtil;
     private final VaultRepository vaultRepository;
@@ -39,7 +37,7 @@ public class NoteController {
         this.userRepository = userRepository;
     }
 
-    // GET /vaults/{vault_id}/notes
+    // Get Notes
     @GetMapping("/vaults/{vault_id}/notes")
     public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable("vault_id") Long id, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
@@ -47,19 +45,27 @@ public class NoteController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
+        // Check if Vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(id);
         if (vaultOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
         Vault vault = vaultOptional.get();
+
+        // Check if user has right to vault
         User user = vault.getOwner();
         if (!Objects.equals(jwtUtil.extractId(token), user.getId().toString())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
+        // TODO check if user has right to vault also in permissions table
+
+        // Fetch notes in vault, map and return
         List<Note> notes = noteRepository.findAllByVault(vault);
+
         List<NotesGetDTO> notesGetDTOs = new ArrayList<>();
+
         for (Note note : notes) {
             notesGetDTOs.add(DTOMapper.INSTANCE.convertEntityToNotesGetDTO(note));
         }
@@ -127,11 +133,11 @@ public class NoteController {
         return ResponseEntity.ok().build();
     }
 
-    // Helper method
+    // Helper method to extract token from the Authorization header
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+            return bearerToken.substring(7); // Remove "Bearer " prefix
         }
         return null;
     }

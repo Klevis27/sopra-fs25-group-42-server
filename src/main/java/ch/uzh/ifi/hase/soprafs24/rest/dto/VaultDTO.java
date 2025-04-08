@@ -11,7 +11,6 @@ public class VaultDTO {
         VaultDTO dto = new VaultDTO();
         dto.id = vault.getId();
         dto.name = vault.getName();
-        dto.state = vault.getState();
         return dto;
     }
 }
