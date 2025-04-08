@@ -1,7 +1,8 @@
 package ch.uzh.ifi.hase.soprafs24.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
-import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -10,7 +11,6 @@ import java.util.List;
 @Table(name = "VAULT")
 public class Vault implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -25,6 +25,7 @@ public class Vault implements Serializable {
     private User owner;
 
     @OneToMany(mappedBy = "vault", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnoreProperties("vault")
     private List<Note> notes;
 
     @Column(nullable = false)
@@ -33,22 +34,42 @@ public class Vault implements Serializable {
     @OneToMany(mappedBy = "vault", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VaultPermission> permissions;
 
-    public List<VaultPermission> getPermissions() { return permissions; }
-    public void setPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
+    // ✅ NEW: state column
+    @Column(nullable = false)
+    private String state;
 
+    // --- GETTERS & SETTERS ---
 
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
     public void setId(Long id) { this.id = id; }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
     public void setName(String name) { this.name = name; }
 
-    public User getOwner() { return owner; }
+    public User getOwner() {
+        return owner;
+    }
     public void setOwner(User owner) { this.owner = owner; }
 
-    public List<Note> getNotes() { return notes; }
+    public List<Note> getNotes() {
+        return notes;
+    }
     public void setNotes(List<Note> notes) { this.notes = notes; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public List<VaultPermission> getPermissions() { return permissions; }
+    public void setPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
+
+    public String getState() {
+        return state;
+    }
+    public void setState(String state) {
+        this.state = state;
+    }
 }

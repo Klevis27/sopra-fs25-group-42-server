@@ -1,15 +1,14 @@
 package ch.uzh.ifi.hase.soprafs24.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.*;
-import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 @Entity
 @Table(name = "NOTE")
 public class Note implements Serializable {
 
-    @Serial
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -17,25 +16,26 @@ public class Note implements Serializable {
     private Long id;
 
     @Column(nullable = false)
-    private String title;  // The title for the note
+    private String title;
 
     @ManyToOne
     @JoinColumn(name = "vault_id", nullable = false)
+    @JsonIgnoreProperties("notes") // Vault içindeki notes alanında sonsuz döngü engeller
     private Vault vault;
 
-    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<NotePermission> notePermissions;  // Permissions specific to this note
-
-    // Getters and Setters
-    public Long getId() { return id; }
+    // GETTER - SETTER
+    public Long getId() {
+        return id;
+    }
     public void setId(Long id) { this.id = id; }
 
-    public String getTitle() { return title; }
+    public String getTitle() {
+        return title;
+    }
     public void setTitle(String title) { this.title = title; }
 
-    public Vault getVault() { return vault; }
+    public Vault getVault() {
+        return vault;
+    }
     public void setVault(Vault vault) { this.vault = vault; }
-
-    public List<NotePermission> getNotePermissions() { return notePermissions; }
-    public void setNotePermissions(List<NotePermission> notePermissions) { this.notePermissions = notePermissions; }
 }
