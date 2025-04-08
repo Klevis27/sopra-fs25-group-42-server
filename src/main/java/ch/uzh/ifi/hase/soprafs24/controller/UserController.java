@@ -128,6 +128,8 @@ public class UserController {
     }
 
     // LOGOUT
+    //Shouldn't this be a PUT method since we are not creating a new 
+    //entity but rather changing an existing one?
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(@RequestBody UserLogoutDTO userLogoutDTO, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);

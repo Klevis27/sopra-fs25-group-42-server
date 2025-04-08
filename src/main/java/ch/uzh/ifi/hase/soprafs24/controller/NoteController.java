@@ -46,17 +46,13 @@ public class NoteController {
 
     // Get Notes
     @GetMapping("/vaults/{vault_id}/notes")
-    public ResponseEntity<List<NotesGetDTO>> profile(@PathVariable("vault_id") Long id, HttpServletRequest request) {
+    public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable("vault_id") Long id, HttpServletRequest request) {
         // Extract token from the Authorization header
-        // String token = extractTokenFromRequest(request);
+        String token = extractTokenFromRequest(request);
 
-        // Temporarily commented out authentification so testing is easier
-        /*
-         * if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token)))
-         * {
-         * return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-         * }
-         */
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
 
         // Check if Vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(id);
@@ -67,6 +63,7 @@ public class NoteController {
 
         // Check if user has right to vault
         // Also commented out for testing
+        // Has to do with access rights so I dunno
         /*
          * User user = vault.getOwner();
          * if (!Objects.equals(jwtUtil.extractId(token), user.getId().toString())) {
@@ -89,8 +86,14 @@ public class NoteController {
     }
 
     @GetMapping("/vaults/{vault_id}/note_links")
-    public ResponseEntity<List<NoteLinksGetDTO>> profile(@PathVariable("vault_id") Long id) {
+    public ResponseEntity<List<NoteLinksGetDTO>> getNoteLinks(@PathVariable("vault_id") Long id, HttpServletRequest request) {
 
+        // Extract token from the Authorization header
+        String token = extractTokenFromRequest(request);
+
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
         // Check if Vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(id);
         if (vaultOptional.isEmpty()) {
@@ -102,7 +105,7 @@ public class NoteController {
 
         List<NoteLinksGetDTO> noteLinksGetDTOs = new ArrayList<>();
 
-        for (NoteLink link : links){
+        for (NoteLink link : links) {
             noteLinksGetDTOs.add(DTOMapper.INSTANCE.convertEntityToNoteLinksGetDTO(link));
         }
 
