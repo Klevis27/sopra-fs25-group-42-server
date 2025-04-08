@@ -33,10 +33,10 @@ public class Vault implements Serializable {
     @OneToMany(mappedBy = "vault", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VaultPermission> permissions;
 
-    public List<VaultPermission> getPermissions() { return permissions; }
-    public void setPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
+    public List<VaultPermission> getVaultPermissions() { return permissions; }
+    public void setVaultPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
 
-
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -51,4 +51,8 @@ public class Vault implements Serializable {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public List<VaultPermission> getPermissions() { return permissions; }
+    public void setPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
+
 }
