@@ -23,23 +23,17 @@ import java.util.*;
 
 @RestController
 public class NoteController {
-    private final VaultService vaultService;
     private final JwtUtil jwtUtil;
     private final VaultRepository vaultRepository;
     private final NoteRepository noteRepository;
     private final NoteLinkRepository noteLinkRepository;
-    private final NoteService noteService;
-    private final UserRepository userRepository;
 
     public NoteController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository,
             NoteRepository noteRepository, NoteService noteService, UserRepository userRepository,
             NoteLinkRepository noteLinkRepository) {
-        this.vaultService = vaultService;
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
         this.noteRepository = noteRepository;
-        this.noteService = noteService;
-        this.userRepository = userRepository;
         this.noteLinkRepository = noteLinkRepository;
     }
 
@@ -110,6 +104,7 @@ public class NoteController {
         }
 
         return ResponseEntity.ok(noteLinksGetDTOs);
+    }
       
     // POST /vaults/{vault_id}/notes
     @PostMapping("/vaults/{vault_id}/notes")
