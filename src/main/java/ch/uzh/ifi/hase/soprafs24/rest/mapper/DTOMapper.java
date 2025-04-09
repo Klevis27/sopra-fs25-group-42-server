@@ -1,6 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.rest.mapper;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Note;
+import ch.uzh.ifi.hase.soprafs24.entity.NoteLink;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
@@ -54,4 +55,10 @@ public interface DTOMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     VaultsGetDTO convertEntityToVaultsGetDTO(Vault vault);
+
+    @Mapping(source = "id", target = "id")
+    @Mapping(source = "sourceNote", target = "sourceNoteId")
+    @Mapping(source = "targetNote", target = "targetNoteId")
+    NoteLinksGetDTO convertEntityToNoteLinksGetDTO(NoteLink noteLink);
+
 }
