@@ -17,7 +17,7 @@ public class Note implements Serializable {
     private Long id;
 
     @Column(nullable = false)
-    private String title;  // The title for the note
+    private String title;
 
     @ManyToOne
     @JoinColumn(name = "vault_id", nullable = false)
