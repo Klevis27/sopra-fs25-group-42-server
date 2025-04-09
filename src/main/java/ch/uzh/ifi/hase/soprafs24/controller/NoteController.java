@@ -11,6 +11,7 @@ import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteLinksGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NotesGetDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.NotesPostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.NoteService;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
@@ -40,19 +41,20 @@ public class NoteController {
     // Get Notes
     @GetMapping("/vaults/{vault_id}/notes")
     public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable("vault_id") Long id, HttpServletRequest request) {
-        // Extract token from the Authorization header
+        // Authentication
         String token = extractTokenFromRequest(request);
 
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        // Check if Vault exists
+        // Check if vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(id);
         if (vaultOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
 
+        // Get Vault
         Vault vault = vaultOptional.get();
 
         // Check if user has right to vault
@@ -69,13 +71,10 @@ public class NoteController {
 
         // Fetch notes in vault, map and return
         List<Note> notes = noteRepository.findAllByVault(vault);
-
         List<NotesGetDTO> notesGetDTOs = new ArrayList<>();
-
         for (Note note : notes) {
             notesGetDTOs.add(DTOMapper.INSTANCE.convertEntityToNotesGetDTO(note));
         }
-
         return ResponseEntity.ok(notesGetDTOs);
     }
 
@@ -108,42 +107,52 @@ public class NoteController {
       
     // POST /vaults/{vault_id}/notes
     @PostMapping("/vaults/{vault_id}/notes")
-    public ResponseEntity<?> createNote(@PathVariable("vault_id") Long vaultId,
+    public ResponseEntity<Map<String, Object>> createNote(@PathVariable("vault_id") Long vaultId,
                                         @RequestBody Map<String, String> body,
                                         HttpServletRequest request) {
+        // Authentication
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        // Check if vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(vaultId);
         if (vaultOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
+        // Check if user has right to vault
         Vault vault = vaultOptional.get();
         User owner = vault.getOwner();
         if (!Objects.equals(jwtUtil.extractId(token), owner.getId().toString())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        // Check title
         String title = body.get("title");
         if (title == null || title.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Title is required.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Title cannot be empty."));
         }
 
+        // Create note with title and save
         Note note = new Note();
         note.setTitle(title.trim());
         note.setVault(vault);
         noteRepository.save(note);
 
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        NotesPostDTO responseNote = DTOMapper.INSTANCE.convertEntityToNotesPostDTO(note);
+
+        // Return response
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Creation of Note successful", "note", responseNote));
     }
 
     // DELETE /notes/{note_id}
     @DeleteMapping("/notes/{note_id}")
     public ResponseEntity<?> deleteNote(@PathVariable("note_id") Long noteId,
                                         HttpServletRequest request) {
+        // TODO Overwork
+
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

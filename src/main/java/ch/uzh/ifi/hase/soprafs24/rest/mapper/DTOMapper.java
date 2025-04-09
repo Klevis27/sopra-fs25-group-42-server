@@ -49,6 +49,10 @@ public interface DTOMapper {
     NotesGetDTO convertEntityToNotesGetDTO(Note note);
 
     @Mapping(source = "id", target = "id")
+    @Mapping(source = "title", target = "title")
+    NotesPostDTO convertEntityToNotesPostDTO(Note note);
+
+    @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     VaultsGetDTO convertEntityToVaultsGetDTO(Vault vault);
 

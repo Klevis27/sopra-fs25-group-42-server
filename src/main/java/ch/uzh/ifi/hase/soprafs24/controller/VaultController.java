@@ -1,5 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Note;
+import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -74,6 +76,27 @@ public class VaultController {
         }
 
         return ResponseEntity.ok(vaultsGetDTOs);
+    }
+
+    // Get Vault name
+    @GetMapping("/vaults/{vault_id}/name")
+    public ResponseEntity<Map<String, String>> vaultName(@PathVariable("vault_id") Long vaultId, HttpServletRequest request) {
+        // Extract token from the Authorization header
+        String token = extractTokenFromRequest(request);
+        String userId = jwtUtil.extractId(token);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // Fetch vault name
+        String vaultName = vaultRepository.findVaultById(vaultId).getName();
+
+        // TODO Show all vaults user actually has access to via permissions table
+
+        // Return as JSON object
+        Map<String, String> response = new HashMap<>();
+        response.put("name", vaultName);
+        return ResponseEntity.ok(response);
     }
 
     // Helper method to extract token from the Authorization header
