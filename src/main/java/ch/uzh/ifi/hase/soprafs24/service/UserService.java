@@ -24,11 +24,13 @@ public class UserService {
     // private static final Logger log = LoggerFactory.getLogger(UserService.class); // Maybe useful later
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder encoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository) {
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository, BCryptPasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
+        this.encoder = encoder;
     }
 
     public User createUser(UserPostDTO userPostDTO) {
@@ -66,7 +68,6 @@ public class UserService {
             return null;
         }
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         if (encoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
             // Set and store data
             user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));

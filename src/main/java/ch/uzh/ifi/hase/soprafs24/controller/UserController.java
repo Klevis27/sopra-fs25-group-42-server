@@ -86,6 +86,7 @@ public class UserController {
         return ResponseEntity.ok(userGetDTOs);
     }
 
+    //PROFILE
     @GetMapping("/users/{id}")
     public ResponseEntity<UserProfileDTO> profile(@PathVariable("id") Long id, HttpServletRequest request) {
         // Extract token from the Authorization header
@@ -103,6 +104,7 @@ public class UserController {
         return ResponseEntity.ok(resultUser);
     }
 
+    //EDIT
     @PutMapping("/users/{id}")
     public ResponseEntity<Void> edit(@PathVariable("id") Long id, @RequestBody UserEditDTO userEditDTO, HttpServletRequest request) {
         // Extract token from the Authorization header
