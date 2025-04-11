@@ -17,6 +17,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.server.ResponseStatusException;
@@ -34,174 +35,211 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(SecurityConfig.class)
 public class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @MockBean
-    private UserService userService;
+        @MockBean
+        private UserService userService;
 
-    @MockBean
-    private JwtUtil jwtUtil;
+        @MockBean
+        private JwtUtil jwtUtil;
 
-    @MockBean
-    private UserRepository userRepository;
+        @MockBean
+        private UserRepository userRepository;
 
-    // Helper method to convert objects to JSON
-    private String asJsonString(final Object object) {
-        try {
-            return new ObjectMapper().writeValueAsString(object);
+        @MockBean
+        private BCryptPasswordEncoder encoder;
+
+        // Helper method to convert objects to JSON
+        private String asJsonString(final Object object) {
+                try {
+                        return new ObjectMapper().writeValueAsString(object);
+                } catch (JsonProcessingException e) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        String.format("The request body could not be created.%s", e.toString()));
+                }
         }
-        catch (JsonProcessingException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("The request body could not be created.%s", e.toString()));
+
+        // Test if POST "/users" correctly creates a new user when valid input is
+        // provided and gives back 201 CREATED
+        @Test
+        public void registerUser_validInput_userCreated() throws Exception {
+                // given
+                UserPostDTO userPostDTO = new UserPostDTO();
+                userPostDTO.setUsername("testUsername");
+                userPostDTO.setPassword("testPassword");
+
+                User newUser = new User();
+                newUser.setId(1L);
+                newUser.setUsername("testUsername");
+                newUser.setPassword("testPasswordEncrypted");
+                newUser.setAccessToken("FILLER_ACCESS_TOKEN");
+
+                given(userService.createUser(Mockito.any())).willReturn(newUser);
+
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder postRequest = post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userPostDTO));
+
+                mockMvc.perform(postRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.message", is("Registration successful")))
+                                .andExpect(jsonPath("$.id", is(newUser.getId().toString())))
+                                .andExpect(jsonPath("$.accessToken", is(newUser.getAccessToken())))
+                                .andExpect(jsonPath("$.user.username", is(newUser.getUsername())));
         }
-    }
 
-    /*
-    // Test if POST "/users" correctly creates a new user when valid input is provided and gives back 201 CREATED
-    @Test
-    public void registerUser_validInput_userCreated() throws Exception {
-        // given
-        UserPostDTO userPostDTO = new UserPostDTO();
-        userPostDTO.setUsername("testUsername");
-        userPostDTO.setPassword("testPassword");
+        // Test how POST "/users" handles a registration attempt with an existing
+        // username and if it returns 409 CONFLICT
+        @Test
+        public void registerUser_existingUsername_conflict() throws Exception {
+                // given
+                UserPostDTO userPostDTO = new UserPostDTO();
+                userPostDTO.setUsername("existingUsername");
+                userPostDTO.setPassword("testPassword");
 
-        User newUser = new User();
-        newUser.setId(1L);
-        newUser.setUsername("testUsername");
-        newUser.setPassword("testPasswordEncrypted");
-        newUser.setAccessToken("FILLER_ACCESS_TOKEN");
-        newUser.setStatus(UserStatus.ONLINE);
+                given(userService.createUser(Mockito.any())).willReturn(null);
 
-        given(userService.createUser(Mockito.any())).willReturn(newUser);
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder postRequest = post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userPostDTO));
 
-        // when/then -> do the request + validate the result
-        MockHttpServletRequestBuilder postRequest = post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(userPostDTO));
+                mockMvc.perform(postRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isConflict())
+                                .andExpect(jsonPath("$.Error",
+                                                is("Registration failed because username was already taken")));
+        }
 
-        mockMvc.perform(postRequest)
-                .andDo(print()) // Print response for debugging
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.message", is("Registration successful")))
-                .andExpect(jsonPath("$.id", is(newUser.getId().toString())))
-                .andExpect(jsonPath("$.accessToken", is(newUser.getAccessToken())))
-                .andExpect(jsonPath("$.user.username", is(newUser.getUsername())))
-                .andExpect(jsonPath("$.user.status", is(newUser.getStatus().toString())));
-    }
+        // Test how GET "/users/{id}" handles a request with valid inputs and
+        // authorization and if it returns 200 OK
+        @Test
+        public void getUserProfile_validInputAndToken_success() throws Exception {
+                // given
+                User user = new User();
+                user.setId(1L);
+                user.setUsername("testUsername");
+                user.setPassword("testPassword");
 
-    // Test how POST "/users" handles a registration attempt with an existing username and if it returns 409 CONFLICT
-    @Test
-    public void registerUser_existingUsername_conflict() throws Exception {
-        // given
-        UserPostDTO userPostDTO = new UserPostDTO();
-        userPostDTO.setUsername("existingUsername");
-        userPostDTO.setPassword("testPassword");
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
 
-        given(userService.createUser(Mockito.any())).willReturn(null);
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder getRequest = get("/users/1")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON);
 
-        // when/then -> do the request + validate the result
-        MockHttpServletRequestBuilder postRequest = post("/users")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(userPostDTO));
+                mockMvc.perform(getRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.username", is(user.getUsername())));
+        }
 
-        mockMvc.perform(postRequest)
-                .andDo(print()) // Print response for debugging
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.Error", is("Registration failed because username was already taken")));
-    }
+        // Test how GET "/users/{id}" handles a request for a user profile that does not
+        // exist and if it gives back 404 NOT FOUND
+        @Test
+        public void getUserProfile_userNotFound_notFound() throws Exception {
+                // given
+                given(userRepository.findById(Mockito.eq(999L))).willReturn(Optional.empty());
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("999");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("999"))).willReturn(true);
 
-    // Test how GET "/users/{id}" handles a request with valid inputs and authorization and if it returns 200 OK
-    @Test
-    public void getUserProfile_validInputAndToken_success() throws Exception {
-        // given
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("testUsername");
-        user.setPassword("testPassword");
-        user.setStatus(UserStatus.ONLINE);
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder getRequest = get("/users/999")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON);
 
-        given(userRepository.findById(1L)).willReturn(Optional.of(user));
-        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
-        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+                mockMvc.perform(getRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isNotFound());
+        }
 
-        // when/then -> do the request + validate the result
-        MockHttpServletRequestBuilder getRequest = get("/users/1")
-                .header("Authorization", "Bearer validToken")
-                .contentType(MediaType.APPLICATION_JSON);
+        // Test how PUT "/users/{id}" handles a request with valid inputs and if it
+        // gives back 204 NO CONTENT
+        @Test
+        public void editUser_validInput_noContent() throws Exception {
+                // given
+                UserEditDTO userEditDTO = new UserEditDTO();
+                userEditDTO.setUsername("updatedUsername");
 
-        mockMvc.perform(getRequest)
-                .andDo(print()) // Print response for debugging
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username", is(user.getUsername())))
-                .andExpect(jsonPath("$.status", is(user.getStatus().toString())));
-    }
+                User updatedUser = new User();
+                updatedUser.setId(1L);
+                updatedUser.setUsername("updatedUsername");
+                updatedUser.setPassword("updatedPassword");
 
-    // Test how GET "/users/{id}" handles a request for a user profile that does not exist and if it gives back 404 NOT FOUND
-    @Test
-    public void getUserProfile_userNotFound_notFound() throws Exception {
-        // given
-        given(userRepository.findById(Mockito.eq(999L))).willReturn(Optional.empty());
-        given(jwtUtil.extractId(Mockito.anyString())).willReturn("999");
-        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("999"))).willReturn(true);
+                given(userService.editUser(Mockito.any())).willReturn(updatedUser);
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
 
-        // when/then -> do the request + validate the result
-        MockHttpServletRequestBuilder getRequest = get("/users/999")
-                .header("Authorization", "Bearer validToken")
-                .contentType(MediaType.APPLICATION_JSON);
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder putRequest = put("/users/1")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userEditDTO));
 
-        mockMvc.perform(getRequest)
-                .andDo(print()) // Print response for debugging
-                .andExpect(status().isNotFound());
-    }
+                mockMvc.perform(putRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isNoContent());
+        }
 
-    // Test how PUT "/users/{id}" handles a request with valid inputs and if it gives back 204 NO CONTENT
-    @Test
-    public void editUser_validInput_noContent() throws Exception {
-        // given
-        UserEditDTO userEditDTO = new UserEditDTO();
-        userEditDTO.setUsername("updatedUsername");
+        // Test how PUT "/users/{id}" handles a request for a user profile that does not
+        // exist and if it gives back 404 NOT FOUND
+        @Test
+        public void editUser_userNotFound_notFound() throws Exception {
+                // given
+                UserEditDTO userEditDTO = new UserEditDTO();
+                userEditDTO.setUsername("updatedUsername");
 
-        User updatedUser = new User();
-        updatedUser.setId(1L);
-        updatedUser.setUsername("updatedUsername");
-        updatedUser.setPassword("updatedPassword");
+                given(userService.editUser(Mockito.any())).willReturn(null);
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("999");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("999"))).willReturn(true);
 
-        given(userService.editUser(Mockito.any())).willReturn(updatedUser);
-        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
-        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder putRequest = put("/users/999")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userEditDTO));
 
-        // when/then -> do the request + validate the result
-        MockHttpServletRequestBuilder putRequest = put("/users/1")
-                .header("Authorization", "Bearer validToken")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(userEditDTO));
+                mockMvc.perform(putRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isNotFound());
+        }
 
-        mockMvc.perform(putRequest)
-                .andDo(print()) // Print response for debugging
-                .andExpect(status().isNoContent());
-    }
+        // Test how POST "/login" handles a request with valid inputs and if it gives
+        // back 200 OK
+        @Test
+        public void loginUser_validInput_Ok() throws Exception {
 
-    // Test how PUT "/users/{id}" handles a request for a user profile that does not exist and if it gives back 404 NOT FOUND
-    @Test
-    public void editUser_userNotFound_notFound() throws Exception {
-        // given
-        UserEditDTO userEditDTO = new UserEditDTO();
-        userEditDTO.setUsername("updatedUsername");
+                UserLoginDTO userLoginDTO = new UserLoginDTO();
+                userLoginDTO.setUsername("testUsername");
+                userLoginDTO.setPassword("testPassword");
 
-        given(userService.editUser(Mockito.any())).willReturn(null);
-        given(jwtUtil.extractId(Mockito.anyString())).willReturn("999");
-        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("999"))).willReturn(true);
+                User existingUser = new User();
+                existingUser.setId(1L);
+                existingUser.setUsername("testUsername");
+                existingUser.setPassword("testEncryptedPassword");
+                existingUser.setAccessToken("FILLER_ACCESS_TOKEN");
 
-        // when/then -> do the request + validate the result
-        MockHttpServletRequestBuilder putRequest = put("/users/999")
-                .header("Authorization", "Bearer validToken")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(userEditDTO));
+                given(userService.login(Mockito.any())).willReturn(existingUser);
+                given(jwtUtil.generateAccessToken(Mockito.any())).willReturn(existingUser.getAccessToken());
 
-        mockMvc.perform(putRequest)
-                .andDo(print()) // Print response for debugging
-                .andExpect(status().isNotFound());
-    }
-    */
+
+                // when/then -> do the request + validate the result
+                MockHttpServletRequestBuilder postRequest = post("/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userLoginDTO));
+
+                mockMvc.perform(postRequest)
+                                .andDo(print()) // Print response for debugging
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.message", is("Login successful")))
+                                .andExpect(jsonPath("$.accessToken", is(existingUser.getAccessToken())))
+                                .andExpect(jsonPath("$.id", is(existingUser.getId().toString())));
+
+        }
+
 }
