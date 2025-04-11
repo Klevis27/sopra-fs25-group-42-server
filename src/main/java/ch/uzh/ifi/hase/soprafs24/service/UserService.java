@@ -68,6 +68,7 @@ public class UserService {
             return null;
         }
 
+
         if (encoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
             // Set and store data
             user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
