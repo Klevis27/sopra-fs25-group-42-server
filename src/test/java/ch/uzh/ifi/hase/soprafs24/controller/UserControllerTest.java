@@ -227,7 +227,6 @@ public class UserControllerTest {
                 given(userService.login(Mockito.any())).willReturn(existingUser);
                 given(jwtUtil.generateAccessToken(Mockito.any())).willReturn(existingUser.getAccessToken());
 
-
                 // when/then -> do the request + validate the result
                 MockHttpServletRequestBuilder postRequest = post("/login")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -239,7 +238,65 @@ public class UserControllerTest {
                                 .andExpect(jsonPath("$.message", is("Login successful")))
                                 .andExpect(jsonPath("$.accessToken", is(existingUser.getAccessToken())))
                                 .andExpect(jsonPath("$.id", is(existingUser.getId().toString())));
+        }
 
+        // Test how POST "/login" handles a request with invalid inputs and if it gives
+        // back 401 UNAUTHORIZED
+        @Test
+        public void loginUser_invalidInput_Unauthorized() throws Exception {
+
+                UserLoginDTO userLoginDTO = new UserLoginDTO();
+                userLoginDTO.setUsername("testUsername");
+                userLoginDTO.setPassword("testPassword");
+
+                given(userService.login(Mockito.any())).willReturn(null);
+
+                MockHttpServletRequestBuilder postRequest = post("/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userLoginDTO));
+
+                mockMvc.perform(postRequest)
+                                .andDo(print())
+                                .andExpect(status().isUnauthorized());
+        }
+
+        // Test how GET "/users" handles a request with valid input and if it gives back
+        // 200 OK
+        @Test
+        public void getUserDashboard_validInput_Ok() throws Exception {
+
+                User user = new User();
+                user.setId(1L);
+
+                given(userRepository.findById(1L)).willReturn(Optional.of(user));
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+
+                MockHttpServletRequestBuilder getRequest = get("/users")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON);
+
+                mockMvc.perform(getRequest)
+                                .andExpect((status().isOk()));
+        }
+
+        // Test how GET "/users" handles a request with valid input but invalid token 
+        // and gives back 401 UNAUTHORIZED
+        @Test
+        public void getUserDashboard_invalidInput_Unauthorized() throws Exception {
+
+                User user = new User();
+                user.setId(1L);
+
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
+
+                MockHttpServletRequestBuilder getRequest = get("/users")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON);
+
+                mockMvc.perform(getRequest)
+                                .andExpect((status().isUnauthorized()));
         }
 
 }
