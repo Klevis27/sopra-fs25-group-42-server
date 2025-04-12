@@ -268,7 +268,6 @@ public class UserControllerTest {
                 User user = new User();
                 user.setId(1L);
 
-                given(userRepository.findById(1L)).willReturn(Optional.of(user));
                 given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
                 given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
 
@@ -280,7 +279,7 @@ public class UserControllerTest {
                                 .andExpect((status().isOk()));
         }
 
-        // Test how GET "/users" handles a request with valid input but invalid token 
+        // Test how GET "/users" handles a request with valid input but invalid token
         // and gives back 401 UNAUTHORIZED
         @Test
         public void getUserDashboard_invalidInput_Unauthorized() throws Exception {
@@ -299,4 +298,45 @@ public class UserControllerTest {
                                 .andExpect((status().isUnauthorized()));
         }
 
+        // Test how POST "/logout" handles a request with valid input
+        // and if it gives back 200 OK
+        @Test
+        public void logoutUser_validInput_Ok() throws Exception {
+
+                UserLogoutDTO userLogoutDTO = new UserLogoutDTO();
+                userLogoutDTO.setId(1L);
+
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+
+                MockHttpServletRequestBuilder postRequest = post("/logout")
+                                .header("Authorization", "Bearer validToken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userLogoutDTO));
+
+                mockMvc.perform(postRequest)
+                                .andExpect((status().isOk()))
+                                .andExpect(jsonPath("$.message", is("Logout successful")));
+        }
+
+
+        // Test how POST "/logout" handles a request with invalid input
+        // and if it gives back 401 UNAUTHORIZED
+        @Test
+        public void logoutUser_invalidInput_Unauthorized() throws Exception {
+
+                UserLogoutDTO userLogoutDTO = new UserLogoutDTO();
+                userLogoutDTO.setId(1L);
+
+                given(jwtUtil.extractId(Mockito.anyString())).willReturn(null);
+                given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+
+                MockHttpServletRequestBuilder postRequest = post("/logout")
+                                .header("Authorization", "Bearer invalidToken")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userLogoutDTO));
+
+                mockMvc.perform(postRequest)
+                                .andExpect((status().isUnauthorized()));
+        }
 }
