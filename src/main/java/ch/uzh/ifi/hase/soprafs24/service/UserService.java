@@ -1,8 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
-import ch.uzh.ifi.hase.soprafs24.entity.Vault;
-import ch.uzh.ifi.hase.soprafs24.entity.VaultPermission;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
@@ -15,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service

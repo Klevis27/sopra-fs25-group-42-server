@@ -11,10 +11,12 @@ import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteLinksGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NotesGetDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.NotesInvitePostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NotesPostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.NoteService;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +30,8 @@ public class NoteController {
     private final VaultRepository vaultRepository;
     private final NoteRepository noteRepository;
     private final NoteLinkRepository noteLinkRepository;
+    private NoteService noteService;
+
 
     public NoteController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository,
             NoteRepository noteRepository, NoteService noteService, UserRepository userRepository,
@@ -36,6 +40,8 @@ public class NoteController {
         this.vaultRepository = vaultRepository;
         this.noteRepository = noteRepository;
         this.noteLinkRepository = noteLinkRepository;
+        this.noteService = noteService;
+
     }
 
     // Get Notes
@@ -147,6 +153,7 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Creation of Note successful", "note", responseNote));
     }
 
+
     // DELETE /notes/{note_id}
     @DeleteMapping("/notes/{note_id}")
     public ResponseEntity<?> deleteNote(@PathVariable("note_id") Long noteId,
@@ -174,6 +181,16 @@ public class NoteController {
         noteRepository.delete(note);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/notes/{noteId}/invite")
+    public ResponseEntity<?> inviteUserToNote(
+        @PathVariable Long noteId,
+        @RequestBody NotesInvitePostDTO  inviteRequest
+    ) {
+        noteService.inviteUserToNote(noteId, inviteRequest.getUsername(), inviteRequest.getRole());
+        return ResponseEntity.ok("User invited to note successfully");
+    }
+
 
     // Helper method to extract token from the Authorization header
     private String extractTokenFromRequest(HttpServletRequest request) {
