@@ -227,7 +227,6 @@ public class UserControllerTest {
                 given(userService.login(Mockito.any())).willReturn(existingUser);
                 given(jwtUtil.generateAccessToken(Mockito.any())).willReturn(existingUser.getAccessToken());
 
-
                 // when/then -> do the request + validate the result
                 MockHttpServletRequestBuilder postRequest = post("/login")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -239,7 +238,26 @@ public class UserControllerTest {
                                 .andExpect(jsonPath("$.message", is("Login successful")))
                                 .andExpect(jsonPath("$.accessToken", is(existingUser.getAccessToken())))
                                 .andExpect(jsonPath("$.id", is(existingUser.getId().toString())));
+        }
 
+        // Test how POST "/login" handles a request with invalid inputs and if it gives
+        // back 401 UNAUTHORIZED
+        @Test
+        public void loginUser_invalidInput_Unauthorized() throws Exception {
+
+                UserLoginDTO userLoginDTO = new UserLoginDTO();
+                userLoginDTO.setUsername("testUsername");
+                userLoginDTO.setPassword("testPassword");
+
+                given(userService.login(Mockito.any())).willReturn(null);
+
+                MockHttpServletRequestBuilder postRequest = post("/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(asJsonString(userLoginDTO));
+
+                mockMvc.perform(postRequest)
+                                .andDo(print()) 
+                                .andExpect(status().isUnauthorized());
         }
 
 }
