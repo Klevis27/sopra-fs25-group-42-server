@@ -13,9 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 public class VaultController {
@@ -60,7 +58,6 @@ public class VaultController {
         }
         String userId = jwtUtil.extractId(token);
 
-        // tüm yetkili vaultlar
         List<Vault> vaults = vaultService.getVaultsForUser(userId);
         List<VaultsGetDTO> vaultsGetDTOs = new ArrayList<>();
 
@@ -71,6 +68,7 @@ public class VaultController {
         return ResponseEntity.ok(vaultsGetDTOs);
     }
 
+    // GET /vaults/{vaultId}
     @GetMapping("/vaults/{vaultId}")
     public ResponseEntity<VaultPostDTO> getVault(@PathVariable Long vaultId, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
@@ -83,6 +81,25 @@ public class VaultController {
         return ResponseEntity.ok(dto);
     }
 
+    // GET /vaults/{vaultId}/name
+    @GetMapping("/vaults/{vaultId}/name")
+    public ResponseEntity<Map<String, String>> getVaultName(@PathVariable("vaultId") Long vaultId, HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        Vault vault = vaultRepository.findVaultById(vaultId);
+        if (vault == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+
+        Map<String, String> response = new HashMap<>();
+        response.put("name", vault.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    // PUT /vaults/{vaultId}
     @PutMapping("/vaults/{vaultId}")
     public ResponseEntity<Void> updateVault(@PathVariable Long vaultId,
                                             @RequestBody VaultPostDTO vaultPostDTO,
@@ -97,6 +114,7 @@ public class VaultController {
         return ResponseEntity.ok().build();
     }
 
+    // DELETE /vaults/{vaultId}/settings/delete
     @DeleteMapping("/vaults/{vaultId}/settings/delete")
     public ResponseEntity<Void> deleteVault(@PathVariable Long vaultId, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
@@ -109,6 +127,7 @@ public class VaultController {
         return ResponseEntity.ok().build();
     }
 
+    // Helper method to extract JWT from Authorization header
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {

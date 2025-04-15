@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.springframework.lang.NonNull;
+
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -19,7 +21,7 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, javax.servlet.http.HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull javax.servlet.http.HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
         String token_raw = request.getHeader("Authorization");

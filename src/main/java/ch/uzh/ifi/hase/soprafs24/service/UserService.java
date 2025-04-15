@@ -1,8 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
-import ch.uzh.ifi.hase.soprafs24.entity.Vault;
-import ch.uzh.ifi.hase.soprafs24.entity.VaultPermission;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
@@ -15,7 +13,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,11 +21,13 @@ public class UserService {
     // private static final Logger log = LoggerFactory.getLogger(UserService.class); // Maybe useful later
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final BCryptPasswordEncoder encoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository) {
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository, BCryptPasswordEncoder encoder) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
+        this.encoder = encoder;
     }
 
     public User createUser(UserPostDTO userPostDTO) {
@@ -66,7 +65,7 @@ public class UserService {
             return null;
         }
 
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
         if (encoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
             // Set and store data
             user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));

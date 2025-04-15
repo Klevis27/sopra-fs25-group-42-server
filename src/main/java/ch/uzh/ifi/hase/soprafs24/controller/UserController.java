@@ -86,6 +86,7 @@ public class UserController {
         return ResponseEntity.ok(userGetDTOs);
     }
 
+    //PROFILE
     @GetMapping("/users/{id}")
     public ResponseEntity<UserProfileDTO> profile(@PathVariable("id") Long id, HttpServletRequest request) {
         // Extract token from the Authorization header
@@ -103,6 +104,7 @@ public class UserController {
         return ResponseEntity.ok(resultUser);
     }
 
+    //EDIT
     @PutMapping("/users/{id}")
     public ResponseEntity<Void> edit(@PathVariable("id") Long id, @RequestBody UserEditDTO userEditDTO, HttpServletRequest request) {
         // Extract token from the Authorization header
@@ -128,6 +130,8 @@ public class UserController {
     }
 
     // LOGOUT
+    //Shouldn't this be a PUT method since we are not creating a new 
+    //entity but rather changing an existing one?
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logout(@RequestBody UserLogoutDTO userLogoutDTO, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);

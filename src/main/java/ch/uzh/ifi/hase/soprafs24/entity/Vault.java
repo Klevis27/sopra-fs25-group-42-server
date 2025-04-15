@@ -21,7 +21,7 @@ public class Vault implements Serializable {
     private String name;
 
     @Column(nullable = false)
-    private String state; // ✅ New field added
+    private String state;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
