@@ -42,6 +42,7 @@ public interface DTOMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
     @Mapping(source = "owner", target = "owner")
+    @Mapping(source = "state", target = "state") // newly added field
     VaultPostDTO convertEntityToVaultPostDTO(Vault vault);
 
     @Mapping(source = "id", target = "id")
@@ -60,5 +61,4 @@ public interface DTOMapper {
     @Mapping(source = "sourceNote", target = "sourceNoteId")
     @Mapping(source = "targetNote", target = "targetNoteId")
     NoteLinksGetDTO convertEntityToNoteLinksGetDTO(NoteLink noteLink);
-
 }

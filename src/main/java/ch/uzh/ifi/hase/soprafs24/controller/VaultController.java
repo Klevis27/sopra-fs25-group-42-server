@@ -1,12 +1,11 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
-import ch.uzh.ifi.hase.soprafs24.entity.Note;
-import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
-import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.VaultPostDTO;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.VaultsGetDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
 import org.springframework.http.HttpStatus;
@@ -23,23 +22,27 @@ public class VaultController {
     private final VaultRepository vaultRepository;
     private final UserRepository userRepository;
 
-    public VaultController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository, UserRepository userRepository) {
+    public VaultController(VaultService vaultService,
+                           JwtUtil jwtUtil,
+                           VaultRepository vaultRepository,
+                           UserRepository userRepository) {
         this.vaultService = vaultService;
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
         this.userRepository = userRepository;
     }
 
-    // Create Vault
+    // Create vault
     @PostMapping("/vaults")
     public ResponseEntity<Map<String, Object>> register(@RequestBody VaultPostDTO vaultPostDTO, HttpServletRequest request) {
-        // Extract token from the Authorization header
+        // Authentication
         String token = extractTokenFromRequest(request);
+        String userId = jwtUtil.extractId(token);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
-        String userId = jwtUtil.extractId(token);
 
+        // Create vault
         Vault vault = vaultService.createVault(userId, vaultPostDTO);
 
         // Vault creation successful?
@@ -48,16 +51,15 @@ public class VaultController {
                     .body(Map.of("Error", "Creation of vault failed because vault name was already taken"));
         }
 
-        // Map correctly
+        // Map and return
         VaultPostDTO newVaultPostDTO = DTOMapper.INSTANCE.convertEntityToVaultPostDTO(vault);
-
-        // Return success!
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Registration successful", "id", newVaultPostDTO.getId().toString()));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Registration successful", "id", newVaultPostDTO.getId().toString()));
     }
 
     @GetMapping("/vaults")
     public ResponseEntity<List<VaultsGetDTO>> profile(HttpServletRequest request) {
-        // Extract token from the Authorization header
+        // Authentication
         String token = extractTokenFromRequest(request);
         String userId = jwtUtil.extractId(token);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -78,12 +80,26 @@ public class VaultController {
         return ResponseEntity.ok(vaultsGetDTOs);
     }
 
-    // Get Vault name
-    @GetMapping("/vaults/{vault_id}/name")
-    public ResponseEntity<Map<String, String>> vaultName(@PathVariable("vault_id") Long vaultId, HttpServletRequest request) {
-        // Extract token from the Authorization header
+    // GET vault
+    @GetMapping("/vaults/{vaultId}")
+    public ResponseEntity<VaultPostDTO> getVault(@PathVariable Long vaultId, HttpServletRequest request) {
+        // Authentication
         String token = extractTokenFromRequest(request);
-        String userId = jwtUtil.extractId(token);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // Get vault, map and return
+        Vault vault = vaultService.getVaultById(vaultId);
+        VaultPostDTO dto = DTOMapper.INSTANCE.convertEntityToVaultPostDTO(vault);
+        return ResponseEntity.ok(dto);
+    }
+
+    // GET /vaults/{vaultId}/name
+    @GetMapping("/vaults/{vaultId}/name")
+    public ResponseEntity<Map<String, String>> getVaultName(@PathVariable("vaultId") Long vaultId, HttpServletRequest request) {
+        // Authentication
+        String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
@@ -91,18 +107,47 @@ public class VaultController {
         // Fetch vault name
         String vaultName = vaultRepository.findVaultById(vaultId).getName();
 
-        // TODO Show all vaults user actually has access to via permissions table
-
         // Return as JSON object
         Map<String, String> response = new HashMap<>();
         response.put("name", vaultName);
         return ResponseEntity.ok(response);
     }
 
+    // PUT /vaults/{vaultId}
+    @PutMapping("/vaults/{vaultId}")
+    public ResponseEntity<Void> updateVault(@PathVariable Long vaultId,
+                                            @RequestBody VaultPostDTO vaultPostDTO,
+                                            HttpServletRequest request) {
+        // Authentication
+        String token = extractTokenFromRequest(request);
+        String userId = jwtUtil.extractId(token);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Update vault and return
+        vaultService.updateVault(vaultId, userId, vaultPostDTO);
+        return ResponseEntity.ok().build();
+    }
+
+    // DELETE vault
+    @DeleteMapping("/vaults/{vaultId}/settings/delete")
+    public ResponseEntity<Void> deleteVault(@PathVariable Long vaultId, HttpServletRequest request) {
+        // Authentication
+        String token = extractTokenFromRequest(request);
+        String userId = jwtUtil.extractId(token);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        // Delete vault and return
+        vaultService.deleteVault(vaultId, userId);
+        return ResponseEntity.ok().build();
+    }
+
     // Helper method to extract token from the Authorization header
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7); // Remove "Bearer " prefix
         }

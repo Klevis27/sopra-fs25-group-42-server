@@ -2,12 +2,11 @@ package ch.uzh.ifi.hase.soprafs24.rest.dto;
 
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 
-import java.time.LocalDate;
-
 public class VaultPostDTO {
 
     private Long id;
     private String name;
+    private String state;
     private User owner;
 
     public Long getId() {
@@ -26,9 +25,18 @@ public class VaultPostDTO {
         this.name = name;
     }
 
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
     public User getOwner() {
         return owner;
     }
+
     public void setOwner(User owner) {
         this.owner = owner;
     }
