@@ -36,7 +36,7 @@ public class Vault implements Serializable {
     @OneToMany(mappedBy = "vault", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VaultPermission> permissions;
 
-    // ✅ Getters and Setters
+    // Getters and Setters
 
     public Long getId() {
         return id;
