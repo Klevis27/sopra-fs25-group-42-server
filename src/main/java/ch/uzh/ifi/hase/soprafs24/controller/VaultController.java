@@ -55,8 +55,9 @@ public class VaultController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Registration successful", "id", newVaultPostDTO.getId().toString()));
     }
 
+    // Get all vaults
     @GetMapping("/vaults")
-    public ResponseEntity<List<VaultsGetDTO>> profile(HttpServletRequest request) {
+    public ResponseEntity<List<VaultsGetDTO>> vaults(HttpServletRequest request) {
         // Extract token from the Authorization header
         String token = extractTokenFromRequest(request);
         String userId = jwtUtil.extractId(token);
@@ -78,6 +79,26 @@ public class VaultController {
         return ResponseEntity.ok(vaultsGetDTOs);
     }
 
+    // Get a specific vault
+    @GetMapping("/vaults/{vault_id}")
+    public ResponseEntity<VaultsGetDTO> vault(HttpServletRequest request, @PathVariable String vault_id) {
+        // Extract token from the Authorization header
+        String token = extractTokenFromRequest(request);
+        String userId = jwtUtil.extractId(token);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
+        // Fetch vaults of user, map and return
+        Vault vault = vaultRepository.findVaultById(Long.valueOf(vault_id));
+
+        // TODO Check if user has access via permissions table
+
+        // Map and return
+        VaultsGetDTO vaultsGetDTO = DTOMapper.INSTANCE.convertEntityToVaultsGetDTO(vault);
+        return ResponseEntity.ok(vaultsGetDTO);
+    }
+
     // Get Vault name
     @GetMapping("/vaults/{vault_id}/name")
     public ResponseEntity<Map<String, String>> vaultName(@PathVariable("vault_id") Long vaultId, HttpServletRequest request) {
@@ -93,7 +114,7 @@ public class VaultController {
 
         // TODO Show all vaults user actually has access to via permissions table
 
-        // Return as JSON object
+        // Return as a JSON object
         Map<String, String> response = new HashMap<>();
         response.put("name", vaultName);
         return ResponseEntity.ok(response);
