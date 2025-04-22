@@ -25,6 +25,11 @@ public interface DTOMapper {
     @Mapping(source = "id", target = "id")
     UserLogoutDTO convertUserLogoutDTOtoEntity(UserLogoutDTO userLogoutDTO);
 
+    @Mapping(source = "documentId", target = "id")
+    @Mapping(source = "noteId", target = "noteId")
+    @Mapping(source = "content", target = "yjsState")
+    NoteStatePutDTO convertNoteStatePutDTOtoEntity(NoteStatePutDTO noteStatePutDTO);
+
     @Mapping(source = "id", target = "id")
     @Mapping(source = "username", target = "username")
     @Mapping(source = "creationDate", target = "creationDate")
