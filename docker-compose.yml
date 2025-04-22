@@ -18,6 +18,7 @@ services:
       - mariadb-dev
     networks:
       - sopra-network
+    command: ["/wait-for-db.sh", "mariadb-dev", "3306", "java", "-jar", "/app/soprafs25.jar"]
 
   mariadb-dev:
     image: mariadb:latest
@@ -33,6 +34,7 @@ services:
 
   adminer:
     image: adminer
+    restart: always
     ports:
       - "8081:8080"
     networks:
