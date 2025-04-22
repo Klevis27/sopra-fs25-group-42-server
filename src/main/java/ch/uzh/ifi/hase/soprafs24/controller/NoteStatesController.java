@@ -6,18 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigInteger;
-
 @RestController
-@RequestMapping("/api/note-state")
 public class NoteStatesController {
 
-    @Autowired
+    
     private NoteStateService noteStateService;
+    public NoteStatesController(NoteStateService noteStateService){
+        this.noteStateService = noteStateService;
+    }
 
-    @PutMapping("/{noteId}")
+    @PutMapping("/noteState")
     public ResponseEntity<?> updateNoteStateContent(
-            @PathVariable("noteId") BigInteger noteId, 
+            @PathVariable("note_Id") Long noteId, 
             @RequestBody NoteStatePutDTO noteStatePutDTO) {
         
         // Step 1: Check if the provided noteId in the DTO matches the URL noteId
