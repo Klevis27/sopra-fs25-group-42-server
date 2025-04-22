@@ -1,4 +1,5 @@
-version: '3'
+version: '3.8'
+
 services:
   backend:
     build:
@@ -12,12 +13,21 @@ services:
       DATABASE_USER: dev
       DATABASE_PASSWORD: dev
       DATABASE_NAME: sopra-mariadb-dev
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     ports:
       - "8080:8080"
     depends_on:
       - mariadb-dev
+      - redis
     networks:
       - sopra-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: ["/wait-for-db.sh", "mariadb-dev:3306", "redis:6379", "java", "-jar", "/app/soprafs25.jar"]
 
   mariadb-dev:
     image: mariadb:latest
@@ -30,14 +40,45 @@ services:
       - "3306:3306"
     networks:
       - sopra-network
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --save 60 1 --requirepass devpass
+    environment:
+      - REDIS_PASSWORD=devpass
+    ports:
+      - "6379:6379"
+    networks:
+      - sopra-network
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   adminer:
     image: adminer
+    restart: always
     ports:
       - "8081:8080"
     networks:
       - sopra-network
+    depends_on:
+      - mariadb-dev
 
 networks:
   sopra-network:
     driver: bridge
+
+volumes:
+  mariadb-data:
+  redis-data:
