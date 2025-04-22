@@ -1,27 +1,26 @@
 package ch.uzh.ifi.hase.soprafs24.rest.dto;
 
-import java.math.BigInteger;
 
 public class NoteStatePutDTO {
-    private BigInteger documentId;
+    private Long documentId;
 
-    private BigInteger noteId;
+    private Long noteId;
     
     private byte[] content;
 
-    public BigInteger getDocId(){
+    public Long getDocId(){
         return this.documentId;
     }
 
-    public void setDocId(BigInteger documentId){
+    public void setDocId(Long documentId){
         this.documentId = documentId;
     }
 
-    public BigInteger getNoteId(){
+    public Long getNoteId(){
         return this.noteId;
     }
 
-    public void setNoteId(BigInteger noteId){
+    public void setNoteId(Long noteId){
         this.noteId = noteId;
     }
 
