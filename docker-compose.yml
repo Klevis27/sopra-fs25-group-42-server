@@ -64,6 +64,16 @@ services:
       timeout: 5s
       retries: 5
 
+   # WebSocket server for Y.js
+  websocket-server:
+    build: ./yjs-redis-server
+    ports:
+      - "1234:1234"
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+
   adminer:
     image: adminer
     restart: always
