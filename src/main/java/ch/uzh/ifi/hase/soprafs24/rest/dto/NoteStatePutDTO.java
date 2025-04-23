@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.rest.dto;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Note;
 
 public class NoteStatePutDTO {
     private Long documentId;
@@ -20,7 +21,7 @@ public class NoteStatePutDTO {
         return this.noteId;
     }
 
-    public void setNoteId(Long noteId){
+    public void setNote(Long noteId){
         this.noteId = noteId;
     }
 
