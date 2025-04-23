@@ -2,11 +2,13 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Note;
 import ch.uzh.ifi.hase.soprafs24.entity.NoteLink;
+import ch.uzh.ifi.hase.soprafs24.entity.NoteState;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteLinkRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.NoteStatesRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteLinksGetDTO;
@@ -22,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RestController
@@ -30,16 +34,18 @@ public class NoteController {
     private final VaultRepository vaultRepository;
     private final NoteRepository noteRepository;
     private final NoteLinkRepository noteLinkRepository;
+    private final NoteStatesRepository noteStatesRepository;
     private NoteService noteService;
 
 
     public NoteController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository,
-            NoteRepository noteRepository, NoteService noteService, UserRepository userRepository,
+            NoteRepository noteRepository, NoteStatesRepository noteStatesRepository, NoteService noteService, UserRepository userRepository,
             NoteLinkRepository noteLinkRepository) {
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
         this.noteRepository = noteRepository;
         this.noteLinkRepository = noteLinkRepository;
+        this.noteStatesRepository = noteStatesRepository;
         this.noteService = noteService;
 
     }
@@ -119,20 +125,20 @@ public class NoteController {
         // Authentication
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Invalid or missing token"));
         }
 
         // Check if vault exists
         Optional<Vault> vaultOptional = vaultRepository.findById(vaultId);
         if (vaultOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("message", "Vault not found"));
         }
 
         // Check if user has right to vault
         Vault vault = vaultOptional.get();
         User owner = vault.getOwner();
         if (!Objects.equals(jwtUtil.extractId(token), owner.getId().toString())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "You do not have access to this vault"));
         }
 
         // Check title
@@ -146,6 +152,12 @@ public class NoteController {
         note.setTitle(title.trim());
         note.setVault(vault);
         noteRepository.save(note);
+
+        //Create corresponding note state for the note
+        NoteState noteState = new NoteState();
+        noteState.setNote(note);
+        noteState.setYjsState("".getBytes(StandardCharsets.UTF_8));
+        noteStatesRepository.save(noteState);
 
         NotesPostDTO responseNote = DTOMapper.INSTANCE.convertEntityToNotesPostDTO(note);
 

@@ -56,6 +56,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.mariadb.jdbc:mariadb-java-client:3.0.6'
 
+    // Redis (optional: if your backend needs direct access)
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    
+    // WebSocket support (optional: if handling non-Y.js messages)
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
 }
 
 bootJar {
