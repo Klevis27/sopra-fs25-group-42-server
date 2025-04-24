@@ -28,6 +28,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import ch.uzh.ifi.hase.soprafs24.rest.dto.NotePermissionDTO;
+
+
 @RestController
 public class NoteController {
     private final JwtUtil jwtUtil;
@@ -213,5 +216,21 @@ public class NoteController {
         }
         return null;
     }
+
+        // Get all users who have permission to this note
+    @GetMapping("/notes/{noteId}/permissions")
+    public ResponseEntity<List<NotePermissionDTO>> getNotePermissions(
+            @PathVariable Long noteId,
+            HttpServletRequest request
+    ) {
+        String token = extractTokenFromRequest(request);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<NotePermissionDTO> permissions = noteService.getNotePermissions(noteId);
+        return ResponseEntity.ok(permissions);
+    }
+
 
 }

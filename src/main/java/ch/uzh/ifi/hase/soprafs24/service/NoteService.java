@@ -12,6 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import ch.uzh.ifi.hase.soprafs24.rest.dto.NotePermissionDTO;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+
+
 
 
 @Service
@@ -53,6 +60,18 @@ public class NoteService {
 
         // Save permission to database
         notePermissionRepository.save(permission);
+    }
+
+    public List<NotePermissionDTO> getNotePermissions(Long noteId) {
+        List<NotePermission> permissions = notePermissionRepository.findByNoteId(noteId);
+
+        return permissions.stream()
+                .map(permission -> {
+                    Optional<User> user = userRepository.findById(permission.getUserId());
+                    String username = user.map(User::getUsername).orElse("Unknown");
+                    return new NotePermissionDTO(username, permission.getRole());
+                })
+                .collect(Collectors.toList());
     }
 
 }
