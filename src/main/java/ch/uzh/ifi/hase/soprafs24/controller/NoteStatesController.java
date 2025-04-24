@@ -3,7 +3,6 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePutDTO;
 import ch.uzh.ifi.hase.soprafs24.service.NoteStateService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
