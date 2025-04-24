@@ -21,7 +21,11 @@ public class NoteStateService {
 
     public boolean updateNoteStateContent(NoteStatePutDTO noteStatePutDTO) {
         // Step 1: Find the NoteState by noteId
-        NoteState noteState = noteStateRepository.findNoteStateById(noteStatePutDTO.getNoteId());
+        Long noteId = noteStatePutDTO.getNoteId();
+        Note note = noteRepository.findNoteById(noteId);
+        if (note == null) return false;
+
+        NoteState noteState = noteStateRepository.findNoteStateByNote(note);
         
         // Step 2: Check if the NoteState exists
         if (noteState == null) {
@@ -39,13 +43,13 @@ public class NoteStateService {
 
     public boolean createNoteState(NoteStatePostDTO noteStatePostDTO){
 
-        NoteState noteState = noteStateRepository.findNoteStateById(noteStatePostDTO.getNoteId());
+        Long noteId = noteStatePostDTO.getNoteId();
+        Note note = noteRepository.findNoteById(noteId);
+        if (note == null) return false;
+
+        NoteState noteState = noteStateRepository.findNoteStateByNote(note);
 
         if (noteState != null){
-            return false;
-        }
-        Note note = noteRepository.findNoteById(noteStatePostDTO.getNoteId());
-        if (note == null){
             return false;
         }
 
