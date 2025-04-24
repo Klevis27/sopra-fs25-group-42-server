@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
+import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
@@ -8,9 +9,6 @@ import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-// import org.slf4j.Logger;
-// import org.slf4j.LoggerFactory;
-
 
 import java.time.LocalDate;
 import java.util.List;
@@ -18,7 +16,6 @@ import java.util.List;
 @Service
 public class UserService {
 
-    // private static final Logger log = LoggerFactory.getLogger(UserService.class); // Maybe useful later
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final BCryptPasswordEncoder encoder;
@@ -31,44 +28,34 @@ public class UserService {
     }
 
     public User createUser(UserPostDTO userPostDTO) {
-
-        // Check if the username already exists in the database
         if (userRepository.findByUsername(userPostDTO.getUsername()) != null) {
             return null; // Username already exists
         }
 
-        // Set params
         User newUser = new User();
         newUser.setUsername(userPostDTO.getUsername());
         newUser.setPassword(new BCryptPasswordEncoder().encode(userPostDTO.getPassword()));
         newUser.setCreationDate(LocalDate.now());
+        newUser.setStatus(UserStatus.OFFLINE); // default offline
 
-        // Save to database
         User savedUser = userRepository.save(newUser);
 
-        // Find user, use id to create access token and save
         User user = userRepository.findByUsername(savedUser.getUsername());
         user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
+        user.setStatus(UserStatus.ONLINE); // after register online
         return userRepository.save(user);
     }
 
     public User login(UserLoginDTO userLoginDTO) {
         User user = userRepository.findByUsername(userLoginDTO.getUsername());
 
-        // Does user with username exist?
-        if (user == null) {
+        if (user == null || userLoginDTO.getPassword() == null) {
             return null;
         }
-
-        // Is password correct?
-        if (userLoginDTO.getPassword() == null) {
-            return null;
-        }
-
 
         if (encoder.matches(userLoginDTO.getPassword(), user.getPassword())) {
-            // Set and store data
             user.setAccessToken(jwtUtil.generateAccessToken(user.getId()));
+            user.setStatus(UserStatus.ONLINE); // after login online
             return userRepository.save(user);
         }
         return null;
@@ -77,10 +64,13 @@ public class UserService {
     public User editUser(UserEditDTO userEditDTO) {
         User user = getUser(userEditDTO.getId());
         if (user == null) {
-            return null; // user not found
+            return null;
         }
         if (userEditDTO.getUsername() != null) {
             user.setUsername(userEditDTO.getUsername());
+        }
+        if (userEditDTO.getBirthday() != null) {
+            user.setBirthday(userEditDTO.getBirthday());
         }
         return userRepository.save(user);
     }
@@ -96,6 +86,7 @@ public class UserService {
     public void logout(UserLogoutDTO userLogoutDTO) {
         User user = userRepository.findUserById(userLogoutDTO.getId());
         user.setAccessToken(null);
+        user.setStatus(UserStatus.OFFLINE); // after logout offline
         userRepository.save(user);
     }
 }

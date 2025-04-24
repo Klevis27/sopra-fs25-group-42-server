@@ -45,11 +45,13 @@ public class NoteService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "User already has permission to this note");
         }
 
+        // Add permission to note
         NotePermission permission = new NotePermission();
         permission.setNoteId(noteId);
         permission.setUserId(userId);
         permission.setRole(role != null ? role : "reader");
 
+        // Save permission to database
         notePermissionRepository.save(permission);
     }
 

@@ -182,6 +182,7 @@ public class NoteController {
         return ResponseEntity.ok().build();
     }
 
+    // Invite user to note
     @PostMapping("/notes/{noteId}/invite")
     public ResponseEntity<?> inviteUserToNote(
         @PathVariable Long noteId,
