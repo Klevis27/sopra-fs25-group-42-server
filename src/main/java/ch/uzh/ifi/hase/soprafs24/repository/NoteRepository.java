@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface NoteRepository extends JpaRepository<Note, Long> {
     List<Note> findAllByVault(Vault vault);
+    Note findNoteById(Long id);
 }

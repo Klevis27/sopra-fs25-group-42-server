@@ -2,6 +2,7 @@ package ch.uzh.ifi.hase.soprafs24.rest.mapper;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Note;
 import ch.uzh.ifi.hase.soprafs24.entity.NoteLink;
+import ch.uzh.ifi.hase.soprafs24.entity.NoteState;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
@@ -24,6 +25,9 @@ public interface DTOMapper {
 
     @Mapping(source = "id", target = "id")
     UserLogoutDTO convertUserLogoutDTOtoEntity(UserLogoutDTO userLogoutDTO);
+
+    @Mapping(source = "content", target = "yjsState")
+    NoteState convertNoteStatePutDTOtoEntity(NoteStatePutDTO noteStatePutDTO);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "username", target = "username")
