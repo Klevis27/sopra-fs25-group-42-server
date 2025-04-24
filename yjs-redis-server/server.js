@@ -25,24 +25,25 @@ wss.on('connection', (ws, req) => {
   console.log('🔌 New client connected:', req.url);
   const docName = req.url.slice(1).split('?')[0];
 
-  console.log("Docname: ", docName);
-  const ydoc = getYDoc('your-doc-name');
-  //const noteId = ydoc.getMap("meta").get("noteId");
-  const noteId = docName.split('/')[0];
-  const markdown = ydoc.getText('markdown').toString();
-  console.log('Loaded markdown:', markdown);
+  const ydoc = getYDoc(docName);
+
+  const noteId = ydoc.getMap("meta").get("noteId");
+
   console.log("Noteid: ", noteId); 
   setupWSConnection(ws, req, { gc: true });
 });
 
 // Upgrade HTTP to WebSocket and pass `req`
 server.on('upgrade', (request, socket, head) => {
+  const docName = request.url.slice(1).split('?')[0];
+  const ydoc = getYDoc(docName);
+  const markdown = ydoc.getText('markdown').toString();
   wss.handleUpgrade(request, socket, head, (ws) => {
     wss.emit('connection', ws, request);
   });
 });
 
-// Start listening (you can change this port or reuse an existing one)
+
 const PORT = 1234;
 server.listen(PORT, () => {
   console.log(`🚀 WebSocket server listening on ws://localhost:${PORT}`);
