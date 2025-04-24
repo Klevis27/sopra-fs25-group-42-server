@@ -1,5 +1,7 @@
 package ch.uzh.ifi.hase.soprafs24.entity;
 
+import ch.uzh.ifi.hase.soprafs24.constant.Role;
+
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
@@ -30,10 +32,6 @@ public class VaultPermission implements Serializable {
 
     @Column(nullable = false)
     private LocalDateTime grantedAt;
-
-    public enum Role {
-        OWNER, EDITOR, VIEWER
-    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

@@ -66,12 +66,9 @@ public class VaultController {
         }
 
         // Fetch vaults of user, map and return
-        List<Vault> vaults = vaultRepository.findVaultByOwner(userRepository.findUserById(Long.valueOf(userId)));
-
-        // TODO Show all vaults user actually has access to via permissions table
+        List<Vault> vaults = vaultService.getVaultsForUser(userId);
 
         List<VaultsGetDTO> vaultsGetDTOs = new ArrayList<>();
-
         for (Vault vault : vaults) {
             vaultsGetDTOs.add(DTOMapper.INSTANCE.convertEntityToVaultsGetDTO(vault));
         }
