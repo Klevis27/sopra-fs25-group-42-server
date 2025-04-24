@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3'
 
 services:
   backend:
@@ -40,8 +40,6 @@ services:
       - "3306:3306"
     networks:
       - sopra-network
-    volumes:
-      - mariadb-data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
