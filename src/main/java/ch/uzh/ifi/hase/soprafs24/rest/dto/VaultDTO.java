@@ -5,9 +5,7 @@ import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 public class VaultDTO {
     public Long id;
     public String name;
-    public String state;
-    public String role; 
-    
+    public String role; // ✅ required for frontend logic
 
     public static VaultDTO fromEntity(Vault vault) {
         VaultDTO dto = new VaultDTO();
@@ -16,10 +14,9 @@ public class VaultDTO {
         return dto;
     }
 
-        // ✅ Overloaded factory method for vault + role
-        public static VaultDTO fromEntityWithRole(Vault vault, String role) {
-            VaultDTO dto = fromEntity(vault);
-            dto.role = role;
-            return dto;
-        }
+    public static VaultDTO fromEntityWithRole(Vault vault, String role) {
+        VaultDTO dto = fromEntity(vault);
+        dto.role = role;
+        return dto;
+    }
 }
