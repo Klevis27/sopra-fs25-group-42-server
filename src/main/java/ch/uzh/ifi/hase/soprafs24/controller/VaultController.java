@@ -2,6 +2,8 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Note;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.VaultDTO;
+
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -55,27 +57,21 @@ public class VaultController {
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", "Registration successful", "id", newVaultPostDTO.getId().toString()));
     }
 
-    // Get all vaults
+    // Get all vaults ✅
     @GetMapping("/vaults")
-    public ResponseEntity<List<VaultsGetDTO>> vaults(HttpServletRequest request) {
-        // Extract token from the Authorization header
+    public ResponseEntity<List<VaultDTO>> vaults(HttpServletRequest request) {
+        // Extract token and validate
         String token = extractTokenFromRequest(request);
-        String userId = jwtUtil.extractId(token);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-
-        // Fetch vaults of user, map and return
-        List<Vault> vaults = vaultService.getVaultsForUser(userId);
-
-        List<VaultsGetDTO> vaultsGetDTOs = new ArrayList<>();
-        for (Vault vault : vaults) {
-            vaultsGetDTOs.add(DTOMapper.INSTANCE.convertEntityToVaultsGetDTO(vault));
-        }
-
-        return ResponseEntity.ok(vaultsGetDTOs);
+    
+        // Extract userId and fetch vaults with role
+        String userId = jwtUtil.extractId(token);
+        List<VaultDTO> vaults = vaultService.getVaultsForUser(userId);
+        return ResponseEntity.ok(vaults);
     }
-
+    
     // Get a specific vault
     @GetMapping("/vaults/{vault_id}")
     public ResponseEntity<VaultsGetDTO> vault(HttpServletRequest request, @PathVariable String vault_id) {

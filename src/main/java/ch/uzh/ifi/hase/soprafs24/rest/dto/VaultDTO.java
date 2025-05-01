@@ -6,6 +6,8 @@ public class VaultDTO {
     public Long id;
     public String name;
     public String state;
+    public String role; 
+    
 
     public static VaultDTO fromEntity(Vault vault) {
         VaultDTO dto = new VaultDTO();
@@ -13,4 +15,11 @@ public class VaultDTO {
         dto.name = vault.getName();
         return dto;
     }
+
+        // ✅ Overloaded factory method for vault + role
+        public static VaultDTO fromEntityWithRole(Vault vault, String role) {
+            VaultDTO dto = fromEntity(vault);
+            dto.role = role;
+            return dto;
+        }
 }
