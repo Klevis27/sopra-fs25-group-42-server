@@ -20,6 +20,13 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Note;
+import ch.uzh.ifi.hase.soprafs24.entity.NotePermission;
+import ch.uzh.ifi.hase.soprafs24.repository.NotePermissionRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
+import java.util.HashSet;
+
+
 @Service
 public class VaultService {
     // private static final Logger log = LoggerFactory.getLogger(UserService.class); // Maybe useful later
@@ -27,13 +34,18 @@ public class VaultService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final VaultPermissionRepository vaultPermissionRepository;
+    private final NoteRepository noteRepository;
+    private final NotePermissionRepository notePermissionRepository;
+
 
     @Autowired
-    public VaultService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository, VaultPermissionRepository vaultPermissionRepository) {
+    public VaultService(UserRepository userRepository, JwtUtil jwtUtil, VaultRepository vaultRepository, VaultPermissionRepository vaultPermissionRepository, NoteRepository noteRepository, NotePermissionRepository notePermissionRepository) {
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
         this.userRepository = userRepository;
         this.vaultPermissionRepository = vaultPermissionRepository;
+        this.noteRepository = noteRepository;
+        this.notePermissionRepository = notePermissionRepository;
     }
 
     public Vault createVault(String userId, VaultPostDTO vaultPostDTO) {
@@ -136,8 +148,33 @@ public class VaultService {
     }
     public List<Vault> getVaultsForUser(String userId) {
         User user = userRepository.findUserById(Long.valueOf(userId));
-        return vaultRepository.findVaultsByUserPermission(user);
+    
+        // Vaults where the user has direct permission
+        List<Vault> directVaults = vaultRepository.findVaultsByUserPermission(user);
+    
+        // Vaults where user has access to notes
+        List<NotePermission> notePermissions = notePermissionRepository.findByUserId(user.getId());
+    
+        // Collect vaults via notes
+        HashSet<Vault> vaultsViaNotes = new HashSet<>();
+        for (NotePermission perm : notePermissions) {
+            Note note = noteRepository.findNoteById(perm.getNoteId());
+            if (note != null && note.getVault() != null) {
+                vaultsViaNotes.add(note.getVault());
+            }
+        }
+    
+        // Merge both lists without duplicates
+        List<Vault> allVaults = new ArrayList<>(vaultsViaNotes);
+        for (Vault vault : directVaults) {
+            if (!allVaults.contains(vault)) {
+                allVaults.add(vault);
+            }
+        }
+    
+        return allVaults;
     }
+    
 
 
 }
