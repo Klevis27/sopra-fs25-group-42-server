@@ -73,17 +73,25 @@ sonar {
         property "sonar.projectKey", "TODO"
         property "sonar.organization", "TODO"
         property "sonar.host.url", "TODO"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
 
+jacoco {
+    toolVersion = "0.8.13"  // or latest
+}
+
 jacocoTestReport {
+    dependsOn test
     reports {
-        xml.enabled true
+        xml.required = true
+        html.required = false
+        csv.required = false
     }
 }
 
 test {
-    enabled = true // TODO Comment for production
+    enabled = true // = false if trying to build without tests
     useJUnitPlatform()
     testLogging.showStandardStreams = true
     maxParallelForks = 1
@@ -94,7 +102,7 @@ if (secretPropsFile.exists()) {
     Properties p = new Properties()
     p.load(new FileInputStream(secretPropsFile))
     p.each { name, value ->
-        ext[name] = value
+        ext[name as String] = value
     }
 }
 
