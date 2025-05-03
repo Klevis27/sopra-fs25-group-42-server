@@ -70,9 +70,9 @@ bootJar {
 
 sonar {
     properties {
-        property "sonar.projectKey", "TODO"
-        property "sonar.organization", "TODO"
-        property "sonar.host.url", "TODO"
+        property "sonar.projectKey", "sopra-fs25-group-42-server"
+        property "sonar.organization", "Klevis27"
+        property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
