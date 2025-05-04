@@ -32,4 +32,6 @@ public class NoteStatePutDTO {
         this.content = content;
     }
 
+    public void setNoteId(Long noteId) {
+    }
 }
