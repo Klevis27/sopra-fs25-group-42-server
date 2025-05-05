@@ -17,6 +17,7 @@ import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteStatesRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
+import ch.uzh.ifi.hase.soprafs24.rest.dto.NotePermissionDTO;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -344,4 +345,145 @@ public class NoteControllerTest {
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------------------------------------------\\
+
+    //Test for DELETE /notes/{note_id}
+    @Test
+    public void deleteNote_validInput_Ok() throws Exception {
+
+        User owner = new User();
+        owner.setId(1L);
+
+        Vault vault = new Vault();
+        vault.setOwner(owner);
+
+        Note note = new Note();
+        note.setVault(vault);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteRepository.findById(1L)).willReturn(Optional.of(note));
+
+        MockHttpServletRequestBuilder deleteRequest = delete("/notes/1")
+        .header("Authorization", "Bearer validToken")
+        .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(deleteRequest)
+            .andDo(print())
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void deleteNote_userUnauthorized_Unauthorized() throws Exception {
+
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
+
+        MockHttpServletRequestBuilder deleteRequest = delete("/notes/1")
+        .header("Authorization", "Bearer invalidToken")
+        .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(deleteRequest)
+            .andDo(print())
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void deleteNote_noteNotFound_NotFound() throws Exception {
+
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+
+        MockHttpServletRequestBuilder deleteRequest = delete("/notes/1")
+        .header("Authorization", "Bearer validToken")
+        .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(deleteRequest)
+            .andDo(print())
+            .andExpect(status().isNotFound());
+    }
+
+    @Test 
+    public void deleteNote_userIsNotOwner_Unauthorized() throws Exception {
+
+        User owner = new User();
+        owner.setId(1L);
+
+        Vault vault = new Vault();
+        vault.setOwner(owner);
+
+        Note note = new Note();
+        note.setVault(vault);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("2");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("2"))).willReturn(true);
+        given(noteRepository.findById(2L)).willReturn(Optional.of(note));
+
+        MockHttpServletRequestBuilder deleteRequest = delete("/notes/2")
+        .header("Authorization", "Bearer validToken")
+        .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(deleteRequest)
+            .andDo(print())
+            .andExpect(status().isUnauthorized());
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------------------------------------------\\
+
+    //Test for POST /notes/{noteId}/invite
+    @Test
+    public void inviteUserToNote_validInput_Ok() throws Exception {
+
+        NotesInvitePostDTO notesInvitePostDTO = new NotesInvitePostDTO();
+        notesInvitePostDTO.setUsername("TestName");
+        notesInvitePostDTO.setRole("TestRole");
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+
+
+        MockHttpServletRequestBuilder postRequest = post("/notes/1/invite")
+        .header("Authorization", "Bearer validToken")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(asJsonString(notesInvitePostDTO));
+
+        mockMvc.perform(postRequest)
+            .andDo(print())
+            .andExpect(status().isOk());
+    }
+
+    // -------------------------------------------------------------------------------------------------------------------------------------------------------------------\\
+
+    //Tests for GET /notes/{noteId}/permissions
+    @Test
+    public void getNotePermissions_validInput_Ok() throws Exception {
+
+        List<NotePermissionDTO> permissions = new ArrayList<NotePermissionDTO>();
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteService.getNotePermissions(1L)).willReturn(permissions);
+
+
+        MockHttpServletRequestBuilder getRequest = get("/notes/1/permissions")
+        .header("Authorization", "Bearer validToken")
+        .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(getRequest)
+            .andDo(print())
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void getNotePermissions_userUnauthorized_Unauthorized() throws Exception {
+
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
+
+        MockHttpServletRequestBuilder getRequest = get("/notes/1/permissions")
+        .header("Authorization", "Bearer invalidToken")
+        .contentType(MediaType.APPLICATION_JSON);
+
+        mockMvc.perform(getRequest)
+            .andDo(print())
+            .andExpect(status().isUnauthorized());
+    }
 }
