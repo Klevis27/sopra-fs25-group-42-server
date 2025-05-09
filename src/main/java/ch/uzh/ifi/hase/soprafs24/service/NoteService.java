@@ -94,4 +94,9 @@ public class NoteService {
                 })
                 .collect(Collectors.toList());
     }
+
+    public List<Note> getSharedNotesForUser(Long userId) {
+        return notePermissionRepository.findSharedNotesByUserId(userId);
+    }
+    
 }
