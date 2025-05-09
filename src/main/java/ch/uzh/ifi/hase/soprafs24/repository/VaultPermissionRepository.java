@@ -16,5 +16,6 @@ public interface VaultPermissionRepository extends JpaRepository<VaultPermission
 
     Optional<VaultPermission> findByVaultAndUser(Vault vault, User user);
 
-    Optional<VaultPermission> findByVaultIdAndUserId(Long vaultId, Long userId);
+    // Used to find all vaults a user has access to
+    List<VaultPermission> findByUserId(Long userId);
 }
