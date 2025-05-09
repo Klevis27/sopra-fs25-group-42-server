@@ -240,6 +240,24 @@ public class NoteController {
         return ResponseEntity.ok("Title updated");
     }
 
+
+    @GetMapping("/notes/shared")
+    public ResponseEntity<List<NotesGetDTO>> getSharedNotes(HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+        Long userId = Long.parseLong(jwtUtil.extractId(token));
+        List<Note> sharedNotes = noteService.getSharedNotesForUser(userId);
+        List<NotesGetDTO> result = sharedNotes.stream()
+        .map(DTOMapper.INSTANCE::convertEntityToNotesGetDTO)
+        .collect(Collectors.toList());
+
+        return ResponseEntity.ok(result);
+}
+
+
     /* ------------------------------------------------- */
     private String extractTokenFromRequest(HttpServletRequest req) {
         String header = req.getHeader("Authorization");
