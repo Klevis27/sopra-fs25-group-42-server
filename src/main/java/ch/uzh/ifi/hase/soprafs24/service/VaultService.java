@@ -146,33 +146,23 @@ public class VaultService {
         vaultRepository.save(vault);
         return true;
     }
-    public List<Vault> getVaultsForUser(String userId) {
-        User user = userRepository.findUserById(Long.valueOf(userId));
+    // New ✅
+    public List<VaultDTO> getVaultsForUser(String userId) {
+        Long uid = Long.parseLong(userId);
+        List<VaultPermission> permissions = vaultPermissionRepository.findByUserId(uid);
     
-        // Vaults where the user has direct permission
-        List<Vault> directVaults = vaultRepository.findVaultsByUserPermission(user);
+        List<VaultDTO> result = new ArrayList<>();
     
-        // Vaults where user has access to notes
-        List<NotePermission> notePermissions = notePermissionRepository.findByUserId(user.getId());
-    
-        // Collect vaults via notes
-        HashSet<Vault> vaultsViaNotes = new HashSet<>();
-        for (NotePermission perm : notePermissions) {
-            Note note = noteRepository.findNoteById(perm.getNoteId());
-            if (note != null && note.getVault() != null) {
-                vaultsViaNotes.add(note.getVault());
-            }
+        for (VaultPermission perm : permissions) {
+            Vault vault = perm.getVault();
+            String role = perm.getRole().name(); // OWNER, EDITOR, VIEWER
+            VaultDTO dto = VaultDTO.fromEntityWithRole(vault, role);
+            result.add(dto);
         }
     
-        // Merge both lists without duplicates
-        List<Vault> allVaults = new ArrayList<>(vaultsViaNotes);
-        for (Vault vault : directVaults) {
-            if (!allVaults.contains(vault)) {
-                allVaults.add(vault);
-            }
-        }
+        return result;
     
-        return allVaults;
+    
     }
     
 

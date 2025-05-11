@@ -1,6 +1,10 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
+import ch.uzh.ifi.hase.soprafs24.entity.Vault;
+import ch.uzh.ifi.hase.soprafs24.entity.VaultPermission;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
+import ch.uzh.ifi.hase.soprafs24.repository.VaultPermissionRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.VaultPermissionDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.VaultPostDTO;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
@@ -8,21 +12,36 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs24.entity.User;
+
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 public class VaultPermissionController {
 
     private final VaultService vaultService;
     private final JwtUtil jwtUtil;
+    private final VaultRepository vaultRepository;
+    private final VaultPermissionRepository vaultPermissionRepository;
+    private final UserRepository userRepository;
 
-    public VaultPermissionController(VaultService vaultService, JwtUtil jwtUtil) {
+    public VaultPermissionController(VaultService vaultService,
+                                     JwtUtil jwtUtil,
+                                     VaultRepository vaultRepository,
+                                     VaultPermissionRepository vaultPermissionRepository,
+                                     UserRepository userRepository) {
         this.vaultService = vaultService;
         this.jwtUtil = jwtUtil;
+        this.vaultRepository = vaultRepository;
+        this.vaultPermissionRepository = vaultPermissionRepository;
+        this.userRepository = userRepository;
     }
 
-    // GET /vaults/{vaultId}/permissions
     @GetMapping("/vaults/{vaultId}/settings/permissions")
     public ResponseEntity<List<VaultPermissionDTO>> getPermissions(@PathVariable Long vaultId, HttpServletRequest request) {
         String token = extractTokenFromRequest(request);
@@ -34,7 +53,6 @@ public class VaultPermissionController {
         return ResponseEntity.ok(result);
     }
 
-    // POST /vaults/{vaultId}/permissions
     @PostMapping("/vaults/{vaultId}/settings/permissions")
     public ResponseEntity<List<VaultPermissionDTO>> addPermission(
             @PathVariable Long vaultId,
@@ -46,11 +64,49 @@ public class VaultPermissionController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        // updating role
         vaultService.addOrUpdatePermission(vaultId, dto);
 
         List<VaultPermissionDTO> updated = vaultService.getPermissionsForVault(vaultId);
         return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/vaults/{vaultId}/settings/permissions/{userId}")
+    public ResponseEntity<?> deletePermission(@PathVariable Long vaultId,
+                                              @PathVariable Long userId,
+                                              HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Long currentUserId = Long.parseLong(jwtUtil.extractId(token));
+        Optional<Vault> vaultOptional = vaultRepository.findById(vaultId);
+        if (vaultOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vault not found");
+        }
+
+        Vault vault = vaultOptional.get();
+        if (!Objects.equals(vault.getOwner().getId(), currentUserId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Only the vault owner can remove permissions");
+        }
+
+        User user = userRepository.findUserById(userId);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        Optional<VaultPermission> permissionOpt = vaultPermissionRepository.findByVaultAndUser(vault, user);
+
+        if (permissionOpt.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Permission not found");
+        }
+
+        if (permissionOpt.get().getRole().equals("OWNER")) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Cannot remove OWNER role");
+        }
+
+        vaultPermissionRepository.delete(permissionOpt.get());
+        return ResponseEntity.ok("Permission deleted");
     }
 
     @PutMapping("/vaults/{vaultId}")
@@ -94,7 +150,7 @@ public class VaultPermissionController {
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // "Bearer " kısmını kırp
+            return bearerToken.substring(7);
         }
         return null;
     }
