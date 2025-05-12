@@ -49,8 +49,6 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --save 60 1 --requirepass devpass
-    environment:
-      - REDIS_PASSWORD=devpass
     ports:
       - "6379:6379"
     networks:
