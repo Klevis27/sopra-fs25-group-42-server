@@ -92,7 +92,7 @@ jacocoTestReport {
 }
 
 test {
-    enabled = false // = false if trying to build without tests
+    enabled = true // = false if trying to build without tests
     useJUnitPlatform()
     testLogging.showStandardStreams = true
     maxParallelForks = 1
