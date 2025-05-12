@@ -3,7 +3,7 @@ package ch.uzh.ifi.hase.soprafs24.service;
 import ch.uzh.ifi.hase.soprafs24.entity.*;
 import ch.uzh.ifi.hase.soprafs24.repository.*;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NotePermissionDTO;
-import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
+
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
