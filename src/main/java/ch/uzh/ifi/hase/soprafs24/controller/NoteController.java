@@ -135,6 +135,7 @@ public class NoteController {
         state.setYjsState(new byte[0]);
         noteStatesRepository.save(state);
 
+        // Makes no sense to create a PostDTO here to send back to the frontend
         NotesPostDTO dto = DTOMapper.INSTANCE.convertEntityToNotesPostDTO(note);
         return ResponseEntity.status(HttpStatus.CREATED)
                              .body(Map.of("message", "Note created", "note", dto));
