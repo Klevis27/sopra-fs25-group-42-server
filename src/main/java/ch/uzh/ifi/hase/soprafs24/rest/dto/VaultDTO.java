@@ -7,6 +7,8 @@ public class VaultDTO {
     public String name;
     public String role; // ✅ required for frontend logic
 
+
+    // This DTO needs to be refactored
     public static VaultDTO fromEntity(Vault vault) {
         VaultDTO dto = new VaultDTO();
         dto.id = vault.getId();

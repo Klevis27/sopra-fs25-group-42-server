@@ -13,6 +13,7 @@ import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteLinkRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.NotePermissionRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteStatesRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -84,6 +85,9 @@ public class NoteControllerTest {
 
     @MockBean
     private NoteLinkRepository noteLinkRepository;
+
+    @MockBean
+    private NotePermissionRepository notePermissionRepository;
 
     @MockBean
     private BCryptPasswordEncoder encoder;
