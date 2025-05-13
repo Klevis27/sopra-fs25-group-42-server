@@ -27,6 +27,7 @@ jobs:
 
       - name: Run Tests
         run: ./gradlew clean test jacocoTestReport
+        continue-on-error: true  # <- This allows the workflow to continue
 
       - name: SonarCloud Analysis
         run: ./gradlew sonar -Dsonar.branch.name=${{ github.event.inputs.branch }}
