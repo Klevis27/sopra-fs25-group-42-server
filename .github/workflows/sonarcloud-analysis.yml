@@ -6,7 +6,7 @@ on:
       branch:
         description: 'Branch to analyze'
         required: true
-        default: 'main'  # You can change this to whatever branch you want as default
+        default: 'Tests'  # You can change this to whatever branch you want as default
 
 jobs:
   sonarcloud:
