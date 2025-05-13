@@ -57,9 +57,9 @@ public class VaultControllerTest {
         }
     }
 
+    // Test for POST "/vaults"
     @Test
-    public void createVault_validInput_success() throws Exception {
-        // Setup
+    public void createVault_validInput_Created() throws Exception {
         VaultPostDTO vaultPostDTO = new VaultPostDTO();
         vaultPostDTO.setName("Test Vault");
 
@@ -83,9 +83,9 @@ public class VaultControllerTest {
                 .andExpect(jsonPath("$.id", is("1")));
     }
 
+    // Test for POST "/vaults"
     @Test
-    public void createVault_unauthorized_returnsUnauthorized() throws Exception {
-        // Setup
+    public void createVault_unauthorized_Unauthorized() throws Exception {
         VaultPostDTO vaultPostDTO = new VaultPostDTO();
         vaultPostDTO.setName("Test Vault");
 
@@ -96,14 +96,13 @@ public class VaultControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(vaultPostDTO));
         
-        // Execute & Verify
         mockMvc.perform(postRequest)
                 .andExpect(status().isUnauthorized());
     }
 
+    // Test for POST "/vaults"
     @Test
-    public void createVault_duplicateName_returnsConflict() throws Exception {
-        // Setup
+    public void createVault_duplicateName_Conflict() throws Exception {
         VaultPostDTO vaultPostDTO = new VaultPostDTO();
         vaultPostDTO.setName("Duplicate Vault");
 
@@ -116,15 +115,14 @@ public class VaultControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(vaultPostDTO));
 
-        // Execute & Verify
         mockMvc.perform(postRequest)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.Error", is("Creation of vault failed because vault name was already taken")));
     }
 
+    // Test for GET "/vaults"
     @Test
-    public void getAllVaults_validToken_returnsVaults() throws Exception {
-        // Setup
+    public void getAllVaults_validToken_Ok() throws Exception {
         Vault vault = new Vault();
         vault.setId(1L);
         vault.setName("Test Vault");
@@ -142,15 +140,15 @@ public class VaultControllerTest {
         MockHttpServletRequestBuilder getRequest = get("/vaults")
                 .header("Authorization", "Bearer validToken");
 
-        // Execute & Verify
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(1)))
                 .andExpect(jsonPath("$[0].name", is("Test Vault")));
     }
 
+    // Test for GET "/vaults"
     @Test
-    public void getAllVaults_invalidToken_returnsUnauthorized() throws Exception {
+    public void getAllVaults_invalidToken_Unauthorized() throws Exception {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).willReturn(false);
 
 
@@ -161,9 +159,9 @@ public class VaultControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    // Test for GET "/vaults/{vault_id}"
     @Test
-    public void getVaultById_validRequest_returnsVault() throws Exception {
-        // Setup
+    public void getVaultById_validRequest_Ok() throws Exception {
         Vault vault = new Vault();
         vault.setId(1L);
         vault.setName("Test Vault");
@@ -176,15 +174,15 @@ public class VaultControllerTest {
         MockHttpServletRequestBuilder getRequest = get("/vaults/{vault_id}", 1L)
                 .header("Authorization", "Bearer validToken");
 
-        // Execute & Verify
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(1)))
                 .andExpect(jsonPath("$.name", is("Test Vault")));
     }
 
+    // Test for GET "/vaults/{vault_id}"
     @Test
-    public void getVaultById_invalidToken_returnsUnauthorized() throws Exception {
+    public void getVaultById_invalidToken_Unauthorized() throws Exception {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).willReturn(false);
 
 
@@ -195,9 +193,9 @@ public class VaultControllerTest {
                 .andExpect(status().isUnauthorized());
     }
 
+    // Test for GET "/vaults/{vault_id}/name"
     @Test
-    public void getVaultName_validRequest_returnsName() throws Exception {
-        // Setup
+    public void getVaultName_validRequest_Ok() throws Exception {
         Vault vault = new Vault();
         vault.setId(1L);
         vault.setName("Test Vault");
@@ -210,14 +208,15 @@ public class VaultControllerTest {
         MockHttpServletRequestBuilder getRequest = get("/vaults/{vault_id}/name", 1L)
                 .header("Authorization", "Bearer validToken");
 
-        // Execute & Verify
         mockMvc.perform(getRequest)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Test Vault")));
     }
 
+
+    // Test for GET "/vaults/{vault_id}/name"
     @Test
-    public void getVaultName_vaultNotFound_returnsNotFound() throws Exception {
+    public void getVaultName_vaultNotFound_NotFound() throws Exception {
         given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
         given(vaultRepository.findVaultById(Mockito.anyLong())).willReturn(null);
