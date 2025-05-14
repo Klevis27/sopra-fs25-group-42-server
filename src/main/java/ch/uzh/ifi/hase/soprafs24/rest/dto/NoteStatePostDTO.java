@@ -19,7 +19,7 @@ public class NoteStatePostDTO {
         return this.noteId;
     }
 
-    public void setNote(Long noteId){
+    public void setNoteId(Long noteId){
         this.noteId = noteId;
     }
 

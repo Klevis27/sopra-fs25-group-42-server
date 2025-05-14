@@ -1,18 +1,17 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
-import ch.uzh.ifi.hase.soprafs24.constant.UserStatus;
 import ch.uzh.ifi.hase.soprafs24.entity.Note;
 import ch.uzh.ifi.hase.soprafs24.entity.NoteLink;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.*;
-import ch.uzh.ifi.hase.soprafs24.rest.mapper.DTOMapper;
 import ch.uzh.ifi.hase.soprafs24.security.SecurityConfig;
 import ch.uzh.ifi.hase.soprafs24.service.NoteService;
 import ch.uzh.ifi.hase.soprafs24.service.UserService;
 import ch.uzh.ifi.hase.soprafs24.service.VaultService;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteLinkRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.NotePermissionRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteStatesRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
@@ -23,7 +22,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -38,13 +36,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -84,6 +78,9 @@ public class NoteControllerTest {
 
     @MockBean
     private NoteLinkRepository noteLinkRepository;
+
+    @MockBean
+    private NotePermissionRepository notePermissionRepository;
 
     @MockBean
     private BCryptPasswordEncoder encoder;

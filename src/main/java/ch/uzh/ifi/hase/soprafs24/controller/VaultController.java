@@ -105,6 +105,8 @@ public class VaultController {
         // Fetch vault name
         String vaultName = vaultRepository.findVaultById(vaultId).getName();
 
+        //Needs checking if vault is found or not
+
         // TODO Show all vaults user actually has access to via permissions table
 
         // Return as a JSON object
