@@ -24,6 +24,7 @@ public class VaultController {
     private final JwtUtil jwtUtil;
     private final VaultRepository vaultRepository;
     private final UserRepository userRepository;
+    private static final String VAULT_NOT_FOUND_MESSAGE = "Vault not found";
 
     public VaultController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository, UserRepository userRepository) {
         this.vaultService = vaultService;
@@ -31,6 +32,13 @@ public class VaultController {
         this.vaultRepository = vaultRepository;
         this.userRepository = userRepository;
     }
+    private ResponseEntity<Map<String, String>> createErrorResponse(HttpStatus status, String message) {
+        return ResponseEntity
+                .status(status)
+                .body(Map.of("error", message));
+    }
+
+
 
     // Create Vault
     @PostMapping("/vaults")
@@ -86,6 +94,16 @@ public class VaultController {
         Vault vault = vaultRepository.findVaultById(Long.valueOf(vault_id));
 
         // TODO Check if user has access via permissions table
+        // TODO Null Pointer gard
+        // Fetch vault
+
+       // Check if vault exists
+/*
+        if (vault == null) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, "VAULT_NOT_FOUND_MESSAGE");
+        }
+
+*/
 
         // Map and return
         VaultsGetDTO vaultsGetDTO = DTOMapper.INSTANCE.convertEntityToVaultsGetDTO(vault);

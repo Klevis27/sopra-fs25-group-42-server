@@ -105,7 +105,8 @@ class UserServiceTest {
         // Given
         when(userRepository.findByUsername(any())).thenReturn(testUser);
         when(encoder.matches(any(), any())).thenReturn(true);
-        when(jwtUtil.generateAccessToken(any())).thenReturn("testToken");
+        when(jwtUtil.generateAccessToken(any(Long.class))).thenReturn("testToken");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // When
         User loggedInUser = userService.login(testUserLoginDTO);
@@ -116,6 +117,7 @@ class UserServiceTest {
         assertNotNull(loggedInUser.getAccessToken());
         verify(userRepository, times(1)).save(any());
     }
+
     //-------------------------------------------------------------//
     // test invalide username login
     @Test

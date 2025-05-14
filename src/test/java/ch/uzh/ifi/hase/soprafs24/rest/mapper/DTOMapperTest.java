@@ -110,6 +110,9 @@ public class DTOMapperTest {
         dto.setContent(content);
 
         assertEquals(100L, dto.getDocId());
+        // Prüfen Sie zuerst, ob der Wert überhaupt gesetzt wurde
+        assertNotNull(dto.getNoteId(), "NoteId sollte nicht null sein");
+
         assertEquals(1L, dto.getNoteId());
         assertArrayEquals(content, dto.getContent());
     }

@@ -28,6 +28,7 @@ public class NoteController {
     private final NoteStatesRepository noteStatesRepository;
     private final NotePermissionRepository notePermissionRepository;
     private final NoteService noteService;
+    private final VaultService vaultService;
 
     public NoteController(JwtUtil jwtUtil,
                           VaultRepository vaultRepository,
@@ -45,6 +46,7 @@ public class NoteController {
         this.noteStatesRepository = noteStatesRepository;
         this.notePermissionRepository = notePermissionRepository;
         this.noteService = noteService;
+        this.vaultService = vaultService;
     }
 
     /* -------------------------------------------------
@@ -135,10 +137,20 @@ public class NoteController {
         state.setYjsState(new byte[0]);
         noteStatesRepository.save(state);
 
-        // Makes no sense to create a PostDTO here to send back to the frontend
         NotesPostDTO dto = DTOMapper.INSTANCE.convertEntityToNotesPostDTO(note);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                             .body(Map.of("message", "Note created", "note", dto));
+        
+        // Überprüfung auf null-Werte hinzugefügt
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                               .body(Collections.singletonMap("message", "Note created"));
+        }
+        
+        // Verwendung von HashMap statt Map.of() für mehr Flexibilität
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Note created");
+        response.put("note", dto);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /* -------------------------------------------------
