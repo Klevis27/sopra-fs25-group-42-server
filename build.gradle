@@ -62,6 +62,10 @@ dependencies {
     // WebSocket support (optional: if handling non-Y.js messages)
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+    //Testing with H2 in memory Database
+    testImplementation 'com.h2database:h2'
+
+
 }
 
 bootJar {
