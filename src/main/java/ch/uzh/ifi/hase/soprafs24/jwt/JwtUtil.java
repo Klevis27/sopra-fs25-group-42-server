@@ -13,7 +13,15 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private final String secretKey = "QxkrD1mqZgFDM82gsV1rJ6cRfNdvMoH4";  // Make sure to keep this secret
+
+    private final String secretKey;  // Make sure to keep this secret
+
+    public JwtUtil() {
+        this.secretKey = System.getenv("JWT_SECRET");  // Reads secret from env
+        if (this.secretKey == null) {
+            throw new IllegalStateException("JWT_SECRET is not set in environment variables!");
+        }
+    }
 
     // Generate Access Token (short-lived)
     public String generateAccessToken(Long id) {

@@ -8,3 +8,4 @@ instance_class: F2
 env_variables:
   MARIADB_DATABASE_USER: "Klevis27"
   MARIADB_DATABASE_PASSWORD: "hh1#98Lv2"
+  JWT_SECRET: "QxkrD1mqZgFDM82gsV1rJ6cRfNdvMoH4"

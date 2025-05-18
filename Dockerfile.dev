@@ -6,6 +6,9 @@ RUN gradle clean build --no-daemon
 FROM openjdk:17-slim
 WORKDIR /app
 
+ARG JWT_SECRET
+ENV JWT_SECRET=$JWT_SECRET
+
 COPY --from=build /app/build/libs/*.jar /app/soprafs25.jar
 COPY wait-for-db.sh /wait-for-db.sh
 RUN chmod +x /wait-for-db.sh
