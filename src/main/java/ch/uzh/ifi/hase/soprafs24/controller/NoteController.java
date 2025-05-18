@@ -67,9 +67,9 @@ public class NoteController {
         }
 
         Long userId = Long.parseLong(jwtUtil.extractId(token));
-        List<NotePermission> perms = notePermissionRepository.findByUserId(userId);
+        List<NotePermission> permissions = notePermissionRepository.findByUserId(userId);
 
-        List<NotesGetDTO> dtoList = perms.stream()
+        List<NotesGetDTO> dtoList = permissions.stream()
                                          .map(NotePermission::getNote)
                                          .filter(n -> n.getVault().getId().equals(vaultId))
                                          .map(DTOMapper.INSTANCE::convertEntityToNotesGetDTO)
