@@ -44,7 +44,7 @@ jobs:
         id: deploy
         uses: google-github-actions/deploy-appengine@v0.2.0
         with:
-          deliverables: app.yaml
+          deliverables: .
           version: v1  # You can use dynamic versioning if needed
           credentials: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
           project_id: 'sopra-fs25-group-42-server'
