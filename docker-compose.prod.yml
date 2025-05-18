@@ -3,7 +3,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.prod
+      dockerfile: Dockerfile
     image: sopra-backend-prod
     environment:
       SPRING_PROFILES_ACTIVE: prod
