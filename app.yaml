@@ -9,3 +9,13 @@ env_variables:
   MARIADB_DATABASE_USER: "Klevis27"
   MARIADB_DATABASE_PASSWORD: "hh1#98Lv2"
   JWT_SECRET: "QxkrD1mqZgFDM82gsV1rJ6cRfNdvMoH4"
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: devpass
+  REDIS_URL: "redis://:devpass@redis:6379"
+  SPRING_PROFILES_ACTIVE: prod
+  DATABASE_HOST: 80.74.149.100
+  DATABASE_PORT: 3306
+  DATABASE_USER: your_db_user
+  DATABASE_PASSWORD: your_db_password
+  DATABASE_NAME: sopra-fs25-group-42-db-production
