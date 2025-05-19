@@ -62,7 +62,7 @@ server.on('upgrade', (req, socket, head) => {
     });
 });
 
-const PORT = process.env.PORT || 1234;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
     console.log(`WebSocket server listening on ws://0.0.0.0:${PORT}`);
 });
