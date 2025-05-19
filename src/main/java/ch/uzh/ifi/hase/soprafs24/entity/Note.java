@@ -24,18 +24,38 @@ public class Note implements Serializable {
     private Vault vault;
 
     @OneToMany(mappedBy = "note", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<NotePermission> notePermissions;  // Permissions specific to this note
+    private List<NotePermission> notePermissions;
 
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public Vault getVault() { return vault; }
-    public void setVault(Vault vault) { this.vault = vault; }
+    public String getTitle() {
+        return title;
+    }
 
-    public List<NotePermission> getNotePermissions() { return notePermissions; }
-    public void setNotePermissions(List<NotePermission> notePermissions) { this.notePermissions = notePermissions; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Vault getVault() {
+        return vault;
+    }
+
+    public void setVault(Vault vault) {
+        this.vault = vault;
+    }
+
+    public List<NotePermission> getNotePermissions() {
+        return notePermissions;
+    }
+
+    public void setNotePermissions(List<NotePermission> notePermissions) {
+        this.notePermissions = notePermissions;
+    }
 }

@@ -50,6 +50,7 @@ public interface DTOMapper {
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "title", target = "title")
+    @Mapping(source = "vault.id", target = "vaultId") 
     NotesGetDTO convertEntityToNotesGetDTO(Note note);
 
     @Mapping(source = "id", target = "id")
