@@ -16,6 +16,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: devpass
+      JWT_SECRET: QxkrD1mqZgFDM82gsV1rJ6cRfNdvMoH4
     ports:
       - "8080:8080"
     depends_on:
