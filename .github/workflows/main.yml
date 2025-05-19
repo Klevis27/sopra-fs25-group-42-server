@@ -73,17 +73,17 @@ jobs:
       - name: Install gcloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
-          project_id: ${{ secrets.GCP_PROJECT }}
+          project_id: sopra-fs25-group-42-server
 
       - name: Build & Push Docker image
         run: |
           gcloud builds submit yjs-redis-server \
-            --tag gcr.io/${{ secrets.GCP_PROJECT }}/yjs-server
+            --tag gcr.io/sopra-fs25-group-42-server/yjs-server
 
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy yjs-server \
-            --image gcr.io/${{ secrets.GCP_PROJECT }}/yjs-server \
+            --image gcr.io/sopra-fs25-group-42-server/yjs-server \
             --platform managed \
             --region europe-west1 \
             --allow-unauthenticated \
