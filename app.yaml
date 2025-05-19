@@ -1,9 +1,8 @@
 # https://cloud.google.com/appengine/docs/the-appengine-environments#comparing_high-level_features
 # https://cloud.google.com/appengine/docs/standard
 
-runtime: custom
-env: flex
-instance_class: F2
+runtime: java17
+env: standard
 
 env_variables:
   MARIADB_DATABASE_USER: "Klevis27"
