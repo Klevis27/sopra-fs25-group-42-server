@@ -12,74 +12,21 @@ services:
       DATABASE_USER: your_db_user
       DATABASE_PASSWORD: your_db_password
       DATABASE_NAME: sopra-fs25-group-42-db-production
-
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: devpass
     ports:
       - "8080:8080"
-    depends_on:
-      - redis
     networks:
       - sopra-network
     command:
       - /wait-for-db.sh
       - 80.74.149.100:3306
-      - redis:6379
       - --
       - java
       - -jar
       - /app/soprafs25.jar
 
-  redis:
-    image: redis:7-alpine
-    command:
-      - redis-server
-      - --save
-      - '60'
-      - '1'
-      - --requirepass
-      - "${REDIS_PASSWORD:-devpass}"
-      - --bind
-      - 0.0.0.0
-    environment:
-      REDIS_PASSWORD: devpass
-    volumes:
-      - redis-data-prod:/data
-    ports:
-      - "6379:6379"
-    networks:
-      - sopra-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "redis-cli -a ${REDIS_PASSWORD:-devpass} ping | grep PONG"
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   websocket-server:
-    build: ./yjs-redis-server
+    build: yjs
     ports:
       - "1234:1234"
-    environment:
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: devpass
-      REDIS_URL: "redis://:devpass@redis:6379"
-    depends_on:
-      redis:
-        condition: service_healthy
     networks:
       - sopra-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "node -e \"require('ioredis')({ host: process.env.REDIS_HOST, port: process.env.REDIS_PORT, password: process.env.REDIS_PASSWORD }).ping().then(()=>process.exit(0)).catch(()=>process.exit(1))\""
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5

@@ -1,12 +1,12 @@
 package ch.uzh.ifi.hase.soprafs24.service;
 
-import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import ch.uzh.ifi.hase.soprafs24.entity.NoteState;
 import ch.uzh.ifi.hase.soprafs24.entity.Note;
+import ch.uzh.ifi.hase.soprafs24.entity.NoteState;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteStatesRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePostDTO;
@@ -14,52 +14,63 @@ import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePutDTO;
 
 @Service
 public class NoteStateService {
-    @Autowired
-    private NoteStatesRepository noteStateRepository;
-    @Autowired
-    private NoteRepository noteRepository;
 
-    public boolean updateNoteStateContent(NoteStatePutDTO noteStatePutDTO) {
-        // Step 1: Find the NoteState by noteId
-        Long noteId = noteStatePutDTO.getNoteId();
-        Note note = noteRepository.findNoteById(noteId);
-        if (note == null) return false;
+    private final NoteRepository noteRepository;
+    private final NoteStatesRepository noteStateRepository;
 
-        NoteState noteState = noteStateRepository.findNoteStateByNote(note);
-        
-        // Step 2: Check if the NoteState exists
-        if (noteState == null) {
-            return false;  // Return false if not found
-        }
-
-        // Step 3: Update the content of the NoteState
-        noteState.setYjsState(noteStatePutDTO.getContent());
-
-        // Step 4: Save the updated NoteState back to the repository
-        noteStateRepository.save(noteState);
-
-        return true;  // Return true on successful update
+    public NoteStateService(
+            NoteRepository noteRepository,
+            NoteStatesRepository noteStateRepository
+    ) {
+        this.noteRepository = noteRepository;
+        this.noteStateRepository = noteStateRepository;
     }
 
-    public boolean createNoteState(NoteStatePostDTO noteStatePostDTO){
+    @Transactional(readOnly = true)
+    public byte[] loadState(Long noteId) {
+        return noteRepository.findById(noteId)
+                .flatMap(noteStateRepository::findByNote)
+                .map(NoteState::getYjsState)
+                .orElse(new byte[0]);
+    }
 
-        Long noteId = noteStatePostDTO.getNoteId();
-        Note note = noteRepository.findNoteById(noteId);
-        if (note == null) return false;
+    @Transactional
+    public boolean createNoteState(NoteStatePostDTO dto) {
+        Long noteId = dto.getNoteId();
+        Optional<Note> optNote = noteRepository.findById(noteId);
+        if (optNote.isEmpty()) {
+            return false;
+        }
+        Note note = optNote.get();
 
-        NoteState noteState = noteStateRepository.findNoteStateByNote(note);
-
-        if (noteState != null){
+        if (noteStateRepository.findByNote(note).isPresent()) {
             return false;
         }
 
-        noteState = new NoteState();
-        noteState.setNote(note);
-        noteState.setYjsState("Test content".getBytes(StandardCharsets.UTF_8));
-        noteStateRepository.save(noteState);
-
+        NoteState state = new NoteState();
+        state.setNote(note);
+        state.setYjsState(dto.getContent());
+        noteStateRepository.save(state);
         return true;
+    }
 
+    @Transactional
+    public boolean updateNoteStateContent(NoteStatePutDTO dto) {
+        Long noteId = dto.getNoteId();
+        Optional<Note> optNote = noteRepository.findById(noteId);
+        if (optNote.isEmpty()) {
+            return false;
+        }
+        Note note = optNote.get();
 
+        Optional<NoteState> optState = noteStateRepository.findByNote(note);
+        if (optState.isEmpty()) {
+            return false;
+        }
+        NoteState state = optState.get();
+
+        state.setYjsState(dto.getContent());
+        noteStateRepository.save(state);
+        return true;
     }
 }
