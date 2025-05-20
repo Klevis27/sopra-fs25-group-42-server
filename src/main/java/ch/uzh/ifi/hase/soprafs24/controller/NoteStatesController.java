@@ -3,10 +3,14 @@ package ch.uzh.ifi.hase.soprafs24.controller;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePostDTO;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePutDTO;
 import ch.uzh.ifi.hase.soprafs24.service.NoteStateService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 @RestController
+@RequestMapping("/notes")
 public class NoteStatesController {
     private final NoteStateService noteStateService;
 
@@ -14,47 +18,41 @@ public class NoteStatesController {
         this.noteStateService = noteStateService;
     }
 
-    @PutMapping("/noteState/{note_Id}")
-    public ResponseEntity<?> updateNoteStateContent(
-            @PathVariable("note_Id") Long noteId,
-            @RequestBody NoteStatePutDTO noteStatePutDTO) {
-
-        // Step 1: Check if the provided noteId in the DTO matches the URL noteId
-        if (!noteId.equals(noteStatePutDTO.getNoteId())) {
-            return ResponseEntity.badRequest().body("Note ID in URL does not match the one in the body");
-        }
-
-        // Step 2: Delegate to the service to update the NoteState content
-        boolean isUpdated = noteStateService.updateNoteStateContent(noteStatePutDTO);
-
-        // Step 3: Return appropriate response based on success or failure
-        if (isUpdated) {
-            return ResponseEntity.ok("Note state content updated successfully");
-        }
-        else {
-            return ResponseEntity.status(404).body("Note state not found");
-        }
+    @GetMapping(value = "/{noteId}/state", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<byte[]> getNoteState(@PathVariable Long noteId) {
+        byte[] state = noteStateService.loadState(noteId);
+        // always return an octet‐stream, even if empty
+        return ResponseEntity.ok().contentLength(state.length).body(state);
     }
 
-    @PostMapping("/noteState/{note_Id}")
-    public ResponseEntity<?> createNoteState(
-            @PathVariable("note_Id") Long noteId,
-            @RequestBody NoteStatePostDTO noteStatePostDTO) {
+    @PutMapping(value = "/{noteId}/state",
+            consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> upsertNoteState(
+            @PathVariable Long noteId,
+            @RequestBody byte[] content
+    ) {
+        // attempt update first
+        NoteStatePutDTO putDto = new NoteStatePutDTO();
+        putDto.setNoteId(noteId);
+        putDto.setContent(content);
 
-        // Step 1: Check if the provided noteId in the DTO matches the URL noteId
-        if (!noteId.equals(noteStatePostDTO.getNoteId())) {
-            return ResponseEntity.badRequest().body("Note ID in URL does not match the one in the body");
+        if (noteStateService.updateNoteStateContent(putDto)) {
+            return ResponseEntity.noContent().build();  // 204
         }
 
-        // Step 2: Delegate to the service to update the NoteState content
-        boolean isUpdated = noteStateService.createNoteState(noteStatePostDTO);
+        // fallback to create
+        NoteStatePostDTO postDto = new NoteStatePostDTO();
+        postDto.setNoteId(noteId);
+        postDto.setContent(content);
 
-        // Step 3: Return appropriate response based on success or failure
-        if (isUpdated) {
-            return ResponseEntity.ok("Note state created successfully");
+        if (noteStateService.createNoteState(postDto)) {
+            // newly created
+            return ResponseEntity
+                    .created(URI.create("/notes/" + noteId + "/state"))
+                    .build();
         }
-        else {
-            return ResponseEntity.status(404).body("Note state could not be created");
-        }
+
+        // neither update nor create succeeded → note doesn’t exist
+        return ResponseEntity.notFound().build();
     }
 }

@@ -3,48 +3,23 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile.prod  # Production Dockerfile
+      dockerfile: Dockerfile
     image: sopra-backend-prod
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      DATABASE_HOST: 80.74.149.100  # The production DB IP or hostname
+      DATABASE_HOST: 80.74.149.100
       DATABASE_PORT: 3306
-      DATABASE_USER: your_db_user  # Production DB username
-      DATABASE_PASSWORD: your_db_password  # Production DB password
-      DATABASE_NAME: sopra-fs25-group-42-db-production  # The database name
-
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: prodredispass
+      DATABASE_USER: your_db_user
+      DATABASE_PASSWORD: your_db_password
+      DATABASE_NAME: sopra-fs25-group-42-db-production
     ports:
       - "8080:8080"
-    depends_on:
-      - redis
     networks:
       - sopra-network
-    # Uncomment if you're using a wait-for script:
-    # command: ["/wait-for-db.sh", "80.74.149.100:3306", "redis:6379", "--", "java", "-jar", "/app/soprafs25.jar"]
-
-  redis:
-    image: redis:7-alpine
-    command: redis-server --save 60 1 --requirepass prodredispass
-    environment:
-      - REDIS_PASSWORD=prodredispass
-    ports:
-      - "6379:6379"
-    networks:
-      - sopra-network
-    volumes:
-      - redis-data-prod:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "prodredispass", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-networks:
-  sopra-network:
-    driver: bridge
-
-volumes:
-  redis-data-prod:
+    command:
+      - /wait-for-db.sh
+      - 80.74.149.100:3306
+      - --
+      - java
+      - -jar
+      - /app/soprafs25.jar

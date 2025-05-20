@@ -131,6 +131,8 @@ public class VaultController {
             errorResponse.put("error", VAULT_NOT_FOUND_MESSAGE);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
+      
+        // TODO Show all vaults user actually has access to via permissions table
 
         // Return as a JSON object
         Map<String, String> response = new HashMap<>();

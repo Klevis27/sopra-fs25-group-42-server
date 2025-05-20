@@ -13,13 +13,11 @@ services:
       DATABASE_USER: dev
       DATABASE_PASSWORD: dev
       DATABASE_NAME: sopra-mariadb-dev
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
+      JWT_SECRET: QxkrD1mqZgFDM82gsV1rJ6cRfNdvMoH4
     ports:
       - "8080:8080"
     depends_on:
       - mariadb-dev
-      - redis
     networks:
       - sopra-network
     healthcheck:
@@ -27,7 +25,13 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    command: ["/wait-for-db.sh", "mariadb-dev:3306", "redis:6379", "--", "java", "-jar", "/app/soprafs25.jar"]
+    command:
+      - /wait-for-db.sh
+      - mariadb-dev:3306
+      - --
+      - java
+      - -jar
+      - /app/soprafs25.jar
 
   mariadb-dev:
     image: mariadb:latest
@@ -36,6 +40,8 @@ services:
       MYSQL_DATABASE: sopra-mariadb-dev
       MYSQL_USER: dev
       MYSQL_PASSWORD: dev
+    volumes:
+      - mariadb-data:/var/lib/mysql
     ports:
       - "3306:3306"
     networks:
@@ -46,35 +52,12 @@ services:
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    command: redis-server --save 60 1 --requirepass devpass
-    environment:
-      - REDIS_PASSWORD=devpass
-    ports:
-      - "6379:6379"
-    networks:
-      - sopra-network
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-   # WebSocket server for Y.js
   websocket-server:
-    build: ./yjs-redis-server
+    build: yjs
     ports:
       - "1234:1234"
-    environment:
-      - REDIS_URL=redis://redis:6379
     networks:
-    - sopra-network
-    depends_on:
-      - backend
-      - redis
+      - sopra-network
 
   adminer:
     image: adminer
@@ -92,4 +75,3 @@ networks:
 
 volumes:
   mariadb-data:
-  redis-data:

@@ -17,6 +17,9 @@ ENV DATABASE_USER=Klevis27
 ENV DATABASE_PASSWORD=hh1#98Lv2
 ENV DATABASE_NAME=sopra-fs25-group-42-db-production
 
+ARG JWT_SECRET
+ENV JWT_SECRET=$JWT_SECRET
+
 USER 3301
 WORKDIR /app
 COPY --from=build /app/build/libs/*.jar /app/soprafs25.jar
