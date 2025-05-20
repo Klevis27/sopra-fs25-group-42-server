@@ -50,19 +50,36 @@ public interface DTOMapper {
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "title", target = "title")
-    NotesGetDTO convertEntityToNotesGetDTO(Note note);
-
-    @Mapping(source = "id", target = "id")
-    @Mapping(source = "title", target = "title")
     NotesPostDTO convertEntityToNotesPostDTO(Note note);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "name", target = "name")
+    @Mapping(source = "owner.id", target = "ownerId")
     VaultsGetDTO convertEntityToVaultsGetDTO(Vault vault);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "sourceNote", target = "sourceNoteId")
     @Mapping(source = "targetNote", target = "targetNoteId")
     NoteLinksGetDTO convertEntityToNoteLinksGetDTO(NoteLink noteLink);
+
+    default NotesGetDTO convertEntityToNotesGetDTO(Note note) {
+        if (note == null) {
+            return null;
+        }
+    
+        NotesGetDTO dto = new NotesGetDTO();
+        dto.setId(note.getId());
+        dto.setTitle(note.getTitle());
+    
+        if (note.getVault() != null) {
+            dto.setVaultId(note.getVault().getId());
+        } else {
+            System.err.println("⚠️ Warning: Note " + note.getId() + " has no vault!");
+            dto.setVaultId(null); // or throw an exception if you want to force this
+        }
+    
+        return dto;
+    }
+    
 
 }

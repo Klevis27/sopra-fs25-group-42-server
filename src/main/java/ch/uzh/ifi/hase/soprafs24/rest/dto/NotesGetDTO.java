@@ -4,6 +4,8 @@ public class NotesGetDTO {
 
     private Long id;
     private String title;
+    private Long vaultId;
+
 
     public Long getId() {
         return this.id;
@@ -20,4 +22,14 @@ public class NotesGetDTO {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public Long getVaultId() {
+        return vaultId;
+    }
+
+    public void setVaultId(Long vaultId) {
+        this.vaultId = vaultId;
+    }
+
+
 }
