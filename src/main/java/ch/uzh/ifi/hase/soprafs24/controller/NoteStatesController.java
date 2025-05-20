@@ -7,6 +7,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 @RestController
 @RequestMapping("/notes")
 public class NoteStatesController {
@@ -19,41 +21,38 @@ public class NoteStatesController {
     @GetMapping(value = "/{noteId}/state", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public ResponseEntity<byte[]> getNoteState(@PathVariable Long noteId) {
         byte[] state = noteStateService.loadState(noteId);
-        if (state.length == 0) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(state);
+        // always return an octet‐stream, even if empty
+        return ResponseEntity.ok().contentLength(state.length).body(state);
     }
 
-    @PutMapping(value = "/{noteId}/state", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> updateNoteState(
+    @PutMapping(value = "/{noteId}/state",
+            consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public ResponseEntity<?> upsertNoteState(
             @PathVariable Long noteId,
             @RequestBody byte[] content
     ) {
-        NoteStatePutDTO dto = new NoteStatePutDTO();
-        dto.setNoteId(noteId);
-        dto.setContent(content);
+        // attempt update first
+        NoteStatePutDTO putDto = new NoteStatePutDTO();
+        putDto.setNoteId(noteId);
+        putDto.setContent(content);
 
-        boolean updated = noteStateService.updateNoteStateContent(dto);
-        if (updated) {
-            return ResponseEntity.ok().build();
+        if (noteStateService.updateNoteStateContent(putDto)) {
+            return ResponseEntity.noContent().build();  // 204
         }
+
+        // fallback to create
+        NoteStatePostDTO postDto = new NoteStatePostDTO();
+        postDto.setNoteId(noteId);
+        postDto.setContent(content);
+
+        if (noteStateService.createNoteState(postDto)) {
+            // newly created
+            return ResponseEntity
+                    .created(URI.create("/notes/" + noteId + "/state"))
+                    .build();
+        }
+
+        // neither update nor create succeeded → note doesn’t exist
         return ResponseEntity.notFound().build();
-    }
-
-    @PostMapping(value = "/{noteId}/state", consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-    public ResponseEntity<?> createNoteState(
-            @PathVariable Long noteId,
-            @RequestBody byte[] content
-    ) {
-        NoteStatePostDTO dto = new NoteStatePostDTO();
-        dto.setNoteId(noteId);
-        dto.setContent(content);
-
-        boolean created = noteStateService.createNoteState(dto);
-        if (created) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().body("Note state exists or note not found");
     }
 }

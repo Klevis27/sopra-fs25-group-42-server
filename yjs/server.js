@@ -7,6 +7,9 @@ const Y = require('yjs');
 const debounce = require('lodash.debounce');
 const axios = require('axios');
 
+isProduction = true; // Flip to true for production
+const API_BASE_URL = isProduction ? "https://sopra-fs25-group-42-server.oa.r.appspot.com" : 'http://backend:8080';
+
 // In-memory docs map
 const docs = new Map();
 
@@ -17,7 +20,7 @@ const getYDoc = (docName) => {
         docs.set(docName, doc);
 
         // Try to fetch persisted state
-        axios.get(`${API_BASE_URL}/${docName}`, {
+        axios.get(`${API_BASE_URL}/notes/${docName}/state`, {
             responseType: 'arraybuffer',
         }).then(res => {
             const update = new Uint8Array(res.data);
@@ -30,7 +33,8 @@ const getYDoc = (docName) => {
         // Debounced persistence
         const persist = debounce(() => {
             const update = Y.encodeStateAsUpdate(doc);
-            axios.put(`${API_BASE_URL}/${docName}`, update, {
+            console.log(`PRE Persisting "${docName}" to DB`);
+            axios.put(`${API_BASE_URL}/notes/${docName}/state`, update, {
                 headers: {
                     'Content-Type': 'application/octet-stream',
                 },
