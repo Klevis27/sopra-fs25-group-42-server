@@ -55,11 +55,11 @@ public class NoteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+/*    @MockBean
     private UserService userService;
 
     @MockBean
-    private VaultService vaultService;
+    private VaultService vaultService;*/
 
     @MockBean
     private NoteService noteService;
@@ -67,8 +67,8 @@ public class NoteControllerTest {
     @MockBean
     private JwtUtil jwtUtil;
 
-    @MockBean
-    private UserRepository userRepository;
+/*    @MockBean
+    private UserRepository userRepository;*/
 
     @MockBean
     private VaultRepository vaultRepository;
@@ -76,17 +76,17 @@ public class NoteControllerTest {
     @MockBean
     private NoteRepository noteRepository;
 
-    @MockBean
-    private NoteStatesRepository noteStatesRepository;
+/*    @MockBean
+    private NoteStatesRepository noteStatesRepository;*/
 
     @MockBean
     private NoteLinkRepository noteLinkRepository;
 
-    @MockBean
+/*    @MockBean
     private NotePermissionRepository notePermissionRepository;
 
     @MockBean
-    private BCryptPasswordEncoder encoder;
+    private BCryptPasswordEncoder encoder;*/
 
     // Helper method to convert objects to JSON
     private String asJsonString(final Object object) {
@@ -100,7 +100,9 @@ public class NoteControllerTest {
 
     // Test for GET "/vaults/{vault_id}/notes"
     // Valid Input
-    // Stellen Sie sicher, dass der Controller diese DTOs zurückgibt denn Json Kommt leer an, was wascheinlich ein Problem der Impklementierung NoteController ist
+    // Stellen Sie sicher, dass der Controller diese DTOs zurückgibt denn Json Kommt leer a
+    // was wascheinlich ein Problem der Impklementierung NotestateController ist
+    // warten auf Klevis
     @Test
     public void getNotes_validInput_Ok() throws Exception {
         // given
