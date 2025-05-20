@@ -102,18 +102,36 @@ public class VaultService {
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found."));
         Optional<VaultPermission> existing = vaultPermissionRepository.findByVaultAndUser(vault, user);
-
+    
         VaultPermission permission = existing.orElse(new VaultPermission());
         permission.setVault(vault);
         permission.setUser(user);
         permission.setRole(Role.valueOf(dto.getRole()));
-
+    
         if (permission.getGrantedAt() == null) {
             permission.setGrantedAt(LocalDateTime.now());
         }
-
+    
+        // 1. Save vault permission
         vaultPermissionRepository.save(permission);
+    
+        // 2. Automatically assign permissions to all notes in the vault
+        List<Note> notesInVault = noteRepository.findAllByVault(vault);
+    
+        for (Note note : notesInVault) {
+            boolean alreadyExists = notePermissionRepository.existsByUserIdAndNoteId(user.getId(), note.getId());
+    
+            if (!alreadyExists) {
+                NotePermission notePermission = new NotePermission();
+                notePermission.setNoteId(note.getId());
+                notePermission.setUserId(user.getId());
+                notePermission.setRole(dto.getRole()); // inherit same role (OWNER, EDITOR, VIEWER)
+    
+                notePermissionRepository.save(notePermission);
+            }
+        }
     }
+    
     public boolean deleteVault(Long vaultId, Long userId) {
         Optional<Vault> vaultOpt = vaultRepository.findById(vaultId);
         if (vaultOpt.isEmpty()) return false;
