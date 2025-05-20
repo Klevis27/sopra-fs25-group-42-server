@@ -4,8 +4,7 @@ public class NotesGetDTO {
 
     private Long id;
     private String title;
-    private Long vaultId;
-
+    private Long vaultId; 
 
     public Long getId() {
         return this.id;
@@ -30,6 +29,4 @@ public class NotesGetDTO {
     public void setVaultId(Long vaultId) {
         this.vaultId = vaultId;
     }
-
-
 }
