@@ -1,5 +1,25 @@
-isProduction = true; // needs to be set manually!
-const API_BASE_URL = isProduction ? "https://sopra-fs25-group-42-server.oa.r.appspot.com" : 'http://host.docker.internal:8080';
+/* ------------------------------------------------------------------------------------------
+DEPLOYMENT
+
+First expose port 8080 in Dockerfile and change port 1234 to 8080 in server.js; also set isProduction to true. Then run:
+
+1.
+cd yjs/
+
+2.
+gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest .
+
+3.
+gcloud run deploy yjs-server \
+  --image gcr.io/sopra-fs25-group-42-server/yjs-server:latest \
+  --platform managed \
+  --region europe-west6 \
+  --allow-unauthenticated
+
+ ------------------------------------------------------------------------------------------ */
+
+
+
 const http = require('http');
 const WebSocket = require('ws');
 const { setupWSConnection } = require('y-websocket/bin/utils');
