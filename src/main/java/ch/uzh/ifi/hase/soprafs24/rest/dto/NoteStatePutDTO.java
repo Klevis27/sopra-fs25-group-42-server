@@ -10,9 +10,8 @@ public class NoteStatePutDTO {
     public void setNoteId(Long noteId) {
         this.noteId = noteId;
     }
-
     public byte[] getContent() {
-        return content;
+        return this.content;
     }
     public void setContent(byte[] content) {
         this.content = content;
