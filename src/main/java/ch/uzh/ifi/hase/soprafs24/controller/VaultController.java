@@ -1,7 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.controller;
 
-import ch.uzh.ifi.hase.soprafs24.entity.Note;
-import ch.uzh.ifi.hase.soprafs24.entity.User;
+
 import ch.uzh.ifi.hase.soprafs24.rest.dto.VaultDTO;
 
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
@@ -24,6 +23,7 @@ public class VaultController {
     private final JwtUtil jwtUtil;
     private final VaultRepository vaultRepository;
     private final UserRepository userRepository;
+    private static final String VAULT_NOT_FOUND_MESSAGE = "Vault not found";
 
     public VaultController(VaultService vaultService, JwtUtil jwtUtil, VaultRepository vaultRepository, UserRepository userRepository) {
         this.vaultService = vaultService;
@@ -31,6 +31,15 @@ public class VaultController {
         this.vaultRepository = vaultRepository;
         this.userRepository = userRepository;
     }
+/*
+    private ResponseEntity<Map<String, String>> createErrorResponse(HttpStatus status, String message) {
+        return ResponseEntity
+                .status(status)
+                .body(Map.of("error", message));
+    }
+*/
+
+
 
     // Create Vault
     @PostMapping("/vaults")
@@ -77,7 +86,7 @@ public class VaultController {
     public ResponseEntity<VaultsGetDTO> vault(HttpServletRequest request, @PathVariable String vault_id) {
         // Extract token from the Authorization header
         String token = extractTokenFromRequest(request);
-        String userId = jwtUtil.extractId(token);
+        //String userId = jwtUtil.extractId(token);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
@@ -86,6 +95,16 @@ public class VaultController {
         Vault vault = vaultRepository.findVaultById(Long.valueOf(vault_id));
 
         // TODO Check if user has access via permissions table
+        // TODO Null Pointer gard
+        // Fetch vault
+
+       // Check if vault exists
+/*
+        if (vault == null) {
+            return createErrorResponse(HttpStatus.NOT_FOUND, "VAULT_NOT_FOUND_MESSAGE");
+        }
+
+*/
 
         // Map and return
         VaultsGetDTO vaultsGetDTO = DTOMapper.INSTANCE.convertEntityToVaultsGetDTO(vault);
@@ -93,25 +112,31 @@ public class VaultController {
     }
 
     // Get Vault name
+
     @GetMapping("/vaults/{vault_id}/name")
     public ResponseEntity<Map<String, String>> vaultName(@PathVariable("vault_id") Long vaultId, HttpServletRequest request) {
         // Extract token from the Authorization header
         String token = extractTokenFromRequest(request);
-        String userId = jwtUtil.extractId(token);
+        //String userId = jwtUtil.extractId(token);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
 
-        // Fetch vault name
-        String vaultName = vaultRepository.findVaultById(vaultId).getName();
+        // Fetch vault
+        Vault vault = vaultRepository.findVaultById(vaultId);
 
-        //Needs checking if vault is found or not
-
+        // Check if vault exists
+        if (vault == null) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", VAULT_NOT_FOUND_MESSAGE);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
+      
         // TODO Show all vaults user actually has access to via permissions table
 
         // Return as a JSON object
         Map<String, String> response = new HashMap<>();
-        response.put("name", vaultName);
+        response.put("name", vault.getName());
         return ResponseEntity.ok(response);
     }
 
