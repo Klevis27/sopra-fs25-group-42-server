@@ -1,5 +1,6 @@
 package ch.uzh.ifi.hase.soprafs24.integration;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -42,16 +43,27 @@ class UserControllerIntegrationTest {
     @Test
     public void registerUser_success() {
         baseURL = baseURL.concat("/users");
+
+        // Erstellen Sie ein vollständigeres Benutzer-Objekt
         Map<String, Object> user = new HashMap<>();
         user.put("username", "testUser" + System.currentTimeMillis());
         user.put("password", "password123");
-        user.put("creationDate", LocalDate.now().toString()); // Add required field
+        user.put("creationDate", LocalDate.now().toString());
+        user.put("status", "ONLINE");  // Fügen Sie den Status hinzu
+        user.put("name", "Test User"); // Fügen Sie den Namen hinzu
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                baseURL,
-                user,
-                Map.class);
+        try {
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    baseURL,
+                    user,
+                    Map.class);
 
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertEquals(HttpStatus.CREATED, response.getStatusCode());
+            assertNotNull(response.getBody());
+            assertNotNull(response.getBody().get("id"));
+            assertEquals(user.get("username"), response.getBody().get("username"));
+        } catch (HttpServerErrorException e) {
+            fail("Server-Fehler aufgetreten: " + e.getResponseBodyAsString());
+        }
     }
 }
