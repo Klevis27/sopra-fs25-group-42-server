@@ -112,7 +112,6 @@ public class VaultController {
     }
 
     // Get Vault name
-
     @GetMapping("/vaults/{vault_id}/name")
     public ResponseEntity<Map<String, String>> vaultName(@PathVariable("vault_id") Long vaultId, HttpServletRequest request) {
         // Extract token from the Authorization header
@@ -131,7 +130,7 @@ public class VaultController {
             errorResponse.put("error", VAULT_NOT_FOUND_MESSAGE);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         }
-      
+
         // TODO Show all vaults user actually has access to via permissions table
 
         // Return as a JSON object
