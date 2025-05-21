@@ -21,16 +21,6 @@ The goal of this project is to combine the powerful note-taking and linking feat
 
 CHAT IS MISSING! (FIREBASE API IS MISSING!)
 
-### **🚀 Frontend:**
-
-| **Technology**        | **Purpose**   | **Source** | 
-|--------------------| ---------- | ------------------ |
-| Next.js 15 | A React framework that supports serverside rendering and a modern file-based routing system. | [NextJS](https://nextjs.org/docs)| 
-| React 19 | A component-based JavaScript library for building fast and responsive user interfaces. | [React](https://react.dev) | 
-| TypeScript 5 | A statically typed superset of JavaScript that improves code safety and developer experience. | [TypeScript](https://www.typescriptlang.org/docs) | 
-| Ant Design v5 | A comprehensive UI library offering polished, ready-to-use components for professional interfaces. | [Ant Design](https://ant.design/components/overview/) | 
-| WebSocket | A communication protocol for real-time, bidirectional messaging between the browser and server. Enables features like collaborative note editing. | [WebSocket](github.com/websockets/ws) | 
-
 ### **⚙️ Backend:**
 
 | **Technology**        | **Purpose**   | **Source** | 
@@ -44,16 +34,6 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 
 ## **👨🏼‍💻 Main Components:**
 
-### **🚀 Frontend:**
-
-| **Component**        | **Purpose**   | **Link** | 
-|--------------------| ---------- | ------------------ |
-| Vaults Page  | Displays the list of vaults owned by or shared with the user. | [Vaults](app/vaults/page.tsx)| 
-| Notes Page | Allows users to view and manage notes under a specific vault. | [Notes](app/vaults/[vault_id]/notes/page.tsx) | 
-| Note Editor (Yjs + WebSocket) | Enables real-time collaborative editing of a note. | [Editor](app/editor/Editor.tsx) | 
-| Vault Settings Page | Used to manage vault permissions and update vault information. | [Vault Settings](app/vaults/[vault_id]/settings/page.tsx) | 
-| Authentication Pages | Handle user authentication (login/register) | [Login](app/login/page.tsx) | 
-
 ### **⚙️ Backend:**
 
 | **Component**        | **Purpose**   | **Link** | 
@@ -66,20 +46,6 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 
 ## **👩🏻‍🚀 Launch & Deployment:**
 
-### **🚀 Frontend:**
-
-1️⃣ **Install dependencies**
-```
-npm install
-```
-2️⃣ **Run the frontend locally**
-```
-npm run dev
-```
-3️⃣ **Run frontend tests**
-```
-npm test
-```
 ### **⚙️ Backend:**
 1️⃣ **Build the project**
 ```
