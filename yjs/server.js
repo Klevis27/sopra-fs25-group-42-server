@@ -53,13 +53,13 @@ let encoding, decoding;
     });
 
 // GetYDoc
-    const getYDoc = async (docName) => {
+    const getYDoc = (docName) => {
         console.log(`[getYDoc] Request for doc "${docName}"`);
         if (!docs.has(docName)) {
             const doc = new Y.Doc();
             docs.set(docName, doc);
 
-            await axios.get(`${API_BASE_URL}/notes/${docName}/state`, {
+            axios.get(`${API_BASE_URL}/notes/${docName}/state`, {
                 responseType: 'arraybuffer',
                 validateStatus: (status) => status === 200 || status === 404
             }).then(res => {
@@ -112,7 +112,7 @@ let encoding, decoding;
     wss.on('connection', async (ws, req) => {
         const docName = req.url.slice(1).split('?')[0];
         console.log(`[CONNECT] ${docName}`);
-        const doc = await getYDoc(docName);
+        const doc = getYDoc(docName);
 
         setupWSConnection(ws, req, {
             doc,
@@ -128,7 +128,7 @@ let encoding, decoding;
                     // This reads and applies the update to doc internally
                     readSyncMessage(decoder, messageType, doc, ws);
 
-                    // After update, send sync step 2 if needed
+                    // After an update, send sync step 2 if needed
                     const encoderReply = encoding.createEncoder();
                     encoding.writeVarUint(encoderReply, messageYjsSyncStep2);
                     writeSyncStep2(encoderReply, doc);
@@ -142,11 +142,27 @@ let encoding, decoding;
             }
         });
         ws.on('error', (err) => {
-            console.error(`WS error (${docName}):`, err);
+            console.log('Flushing pending saves...');
+            for (const [docName, debouncedFn] of pendingSaves) {
+                try {
+                    debouncedFn.flush(); // Force immediate persistence
+                    console.log(`Flushed ${docName}`);
+                } catch (err) {
+                    console.error(`Flush failed for ${docName}:`, err);
+                }
+            }
         });
 
         ws.on('close', () => {
-            console.log(`Connection closed: ${docName}`);
+            console.log('Flushing pending saves...');
+            for (const [docName, debouncedFn] of pendingSaves) {
+                try {
+                    debouncedFn.flush(); // Force immediate persistence
+                    console.log(`Flushed ${docName}`);
+                } catch (err) {
+                    console.error(`Flush failed for ${docName}:`, err);
+                }
+            }
         });
     });
 
