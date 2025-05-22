@@ -33,26 +33,52 @@ public class Vault implements Serializable {
     @OneToMany(mappedBy = "vault", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VaultPermission> permissions;
 
-    public List<VaultPermission> getVaultPermissions() { return permissions; }
-    public void setVaultPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
-
     // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public User getOwner() { return owner; }
-    public void setOwner(User owner) { this.owner = owner; }
+    public String getName() {
+        return name;
+    }
 
-    public List<Note> getNotes() { return notes; }
-    public void setNotes(List<Note> notes) { this.notes = notes; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public User getOwner() {
+        return owner;
+    }
 
-    public List<VaultPermission> getPermissions() { return permissions; }
-    public void setPermissions(List<VaultPermission> permissions) { this.permissions = permissions; }
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
 
+    public List<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public List<VaultPermission> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(List<VaultPermission> permissions) {
+        this.permissions = permissions;
+    }
 }

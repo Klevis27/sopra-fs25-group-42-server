@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .authorizeRequests()
                 .antMatchers(HttpMethod.POST, "/users", "/login", "/logout", "/edit", "/vaults", "/vaults/**", "/invite/**").permitAll()  // Register/Login/Logout erlauben
                 .antMatchers(HttpMethod.GET, "/**").permitAll()  // Alle GET-Anfragen erlauben
-                .antMatchers(HttpMethod.PUT, "/users/**", "/noteState/**").permitAll()
+                .antMatchers(HttpMethod.PUT, "/users/**", "/notes/**").permitAll()
                 .anyRequest().authenticated()  // Alle anderen Anfragen brauchen Auth
                 .and()
                 .headers().frameOptions().sameOrigin()  // H2 Console in iframe erlauben
@@ -57,7 +57,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "https://sopra-fs25-group-42-client.vercel.app"));  // Allow frontend origin
+        config.setAllowedOrigins(List.of("http://localhost:3000", "https://sopra-fs25-group-42-client.vercel.app", "https://sopra-fs25-group-42-server.oa.r.appspot.com"));  // Allow frontend and backend origin
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

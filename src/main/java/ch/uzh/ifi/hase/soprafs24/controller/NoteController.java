@@ -27,16 +27,20 @@ public class NoteController {
     private final NoteLinkRepository noteLinkRepository;
     private final NoteStatesRepository noteStatesRepository;
     private final NotePermissionRepository notePermissionRepository;
+    private final VaultPermissionRepository vaultPermissionRepository;
     private final NoteService noteService;
+    private final VaultService vaultService;
 
     public NoteController(JwtUtil jwtUtil,
-            VaultRepository vaultRepository,
-            NoteRepository noteRepository,
-            NoteLinkRepository noteLinkRepository,
-            NoteStatesRepository noteStatesRepository,
-            NotePermissionRepository notePermissionRepository,
-            NoteService noteService,
-            VaultService vaultService /*  yalnızca wiring için  */) {
+                          
+                  VaultRepository vaultRepository,
+                  NoteRepository noteRepository,
+                  NoteLinkRepository noteLinkRepository,
+                  NoteStatesRepository noteStatesRepository,
+                  NotePermissionRepository notePermissionRepository,
+                  VaultPermissionRepository vaultPermissionRepository,
+                  NoteService noteService,
+                  VaultService vaultService   /* yalnızca wiring için */) {
 
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
@@ -44,7 +48,9 @@ public class NoteController {
         this.noteLinkRepository = noteLinkRepository;
         this.noteStatesRepository = noteStatesRepository;
         this.notePermissionRepository = notePermissionRepository;
+        this.vaultPermissionRepository = vaultPermissionRepository;
         this.noteService = noteService;
+        this.vaultService = vaultService;
     }
 
     /*
@@ -53,32 +59,38 @@ public class NoteController {
      * -------------------------------------------------
      */
 
-    @GetMapping("/vaults/{vaultId}/notes")
-    public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable Long vaultId,
-            HttpServletRequest request) {
-
-        String token = extractTokenFromRequest(request);
-        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        Vault vault = vaultRepository.findById(vaultId)
-                .orElse(null);
-        if (vault == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-
-        Long userId = Long.parseLong(jwtUtil.extractId(token));
-        List<NotePermission> permissions = notePermissionRepository.findByUserId(userId);
-
-        List<NotesGetDTO> dtoList = permissions.stream()
-                .map(NotePermission::getNote)
-                .filter(n -> n.getVault().getId().equals(vaultId))
-                .map(DTOMapper.INSTANCE::convertEntityToNotesGetDTO)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(dtoList);
-    }
+       @GetMapping("/vaults/{vaultId}/notes")
+       public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable Long vaultId,
+                                                         HttpServletRequest request) {
+           String token = extractTokenFromRequest(request);
+           if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+               return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+           }
+       
+           Vault vault = vaultRepository.findById(vaultId).orElse(null);
+           if (vault == null) {
+               return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+           }
+       
+           Long userId = Long.parseLong(jwtUtil.extractId(token));
+       
+           // ✅ Get all notes in this vault
+           List<Note> allNotesInVault = noteRepository.findAllByVault(vault);
+       
+           // ✅ Filter: only notes the user has access to (directly OR via vault permission)
+           List<Note> accessibleNotes = allNotesInVault.stream()
+               .filter(note -> notePermissionRepository.existsByUserIdAndNoteId(userId, note.getId())
+                            || vaultPermissionRepository.findByUserId(userId).stream()
+                                 .anyMatch(vp -> vp.getVault().getId().equals(vaultId)))
+               .collect(Collectors.toList());
+       
+           List<NotesGetDTO> result = accessibleNotes.stream()
+               .map(DTOMapper.INSTANCE::convertEntityToNotesGetDTO)
+               .collect(Collectors.toList());
+       
+           return ResponseEntity.ok(result);
+       }
+       
 
     // ------------------------------------NoteLinks--------------------------------//
 
@@ -241,8 +253,19 @@ public class NoteController {
 
         // Makes no sense to create a PostDTO here to send back to the frontend
         NotesPostDTO dto = DTOMapper.INSTANCE.convertEntityToNotesPostDTO(note);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Note created", "note", dto));
+        
+        // Überprüfung auf null-Werte hinzugefügt
+        if (dto == null) {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                               .body(Collections.singletonMap("message", "Note created"));
+        }
+        
+        // Verwendung von HashMap statt Map.of() für mehr Flexibilität
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Note created");
+        response.put("note", dto);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /*
@@ -350,20 +373,30 @@ public class NoteController {
     }
 
     @GetMapping("/notes/shared")
-    public ResponseEntity<List<NotesGetDTO>> getSharedNotes(HttpServletRequest request) {
-        String token = extractTokenFromRequest(request);
-        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+public ResponseEntity<List<NotesGetDTO>> getSharedNotes(HttpServletRequest request) {
+    String token = extractTokenFromRequest(request);
+    if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+    }
+
+    Long userId = Long.parseLong(jwtUtil.extractId(token));
+    List<Note> sharedNotes = noteService.getSharedNotesForUser(userId);
+
+    List<NotesGetDTO> result = new ArrayList<>();
+
+    for (Note note : sharedNotes) {
+        if (note.getVault() == null) {
+            System.err.println("❌ Note " + note.getId() + " has no vault!");
+            continue;
         }
 
-        Long userId = Long.parseLong(jwtUtil.extractId(token));
-        List<Note> sharedNotes = noteService.getSharedNotesForUser(userId);
-        List<NotesGetDTO> result = sharedNotes.stream()
-                .map(DTOMapper.INSTANCE::convertEntityToNotesGetDTO)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(result);
+        NotesGetDTO dto = DTOMapper.INSTANCE.convertEntityToNotesGetDTO(note);
+        result.add(dto);
     }
+
+    return ResponseEntity.ok(result);
+}
+
 
     /* ------------------------------------------------- */
     private String extractTokenFromRequest(HttpServletRequest req) {

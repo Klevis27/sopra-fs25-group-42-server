@@ -1,158 +1,198 @@
-# SoPra RESTful Service Template FS25
+# Project: not moogle docs
 
-## Getting started with Spring Boot
--   Documentation: https://docs.spring.io/spring-boot/docs/current/reference/html/index.html
--   Guides: http://spring.io/guides
-    -   Building a RESTful Web Service: http://spring.io/guides/gs/rest-service/
-    -   Building REST services with Spring: https://spring.io/guides/tutorials/rest/
+![Logo](docs/logo.png)
 
-## Setup this Template with your IDE of choice
-Download your IDE of choice (e.g., [IntelliJ](https://www.jetbrains.com/idea/download/), [Visual Studio Code](https://code.visualstudio.com/), or [Eclipse](http://www.eclipse.org/downloads/)). Make sure Java 17 is installed on your system (for Windows, please make sure your `JAVA_HOME` environment variable is set to the correct version of Java).
+## 🔴 **Project Overview**
 
-### IntelliJ
-If you consider to use IntelliJ as your IDE of choice, you can make use of your free educational license [here](https://www.jetbrains.com/community/education/#students).
-1. File -> Open... -> SoPra server template
-2. Accept to import the project as a `gradle project`
-3. To build right click the `build.gradle` file and choose `Run Build`
+The goal of this project is to combine the powerful note-taking and linking features of **Obsidian** with the collaborative capabilities of platforms like **Google Docs**. The system is designed to allow users to work together without relying on the paid Obsidian Sync service.
 
-### VS Code
-The following extensions can help you get started more easily:
--   `vmware.vscode-spring-boot`
--   `vscjava.vscode-spring-initializr`
--   `vscjava.vscode-spring-boot-dashboard`
--   `vscjava.vscode-java-pack`
+## 📂 **Features**
+- Users can edit their notes simultaneously.
+- Users can create **links between notes**, which are visualized through an **interactive knowledge graph**.
+- **In-app notifications** allow users to invite friends directly to collaborate on notes and vaults.
+- Each user is assigned a specific **role**:
+  - **Owner**
+  - **Editor**
+- Users can only access notes where they are **participants** and can view or edit content based on their assigned role.
+- The **role-based authorization** system simplifies access control and makes team collaboration more organized and secure.
+- A **modular and user-friendly design** hides technical complexity behind a clean and intuitive interface.
 
-**Note:** You'll need to build the project first with Gradle, just click on the `build` command in the _Gradle Tasks_ extension. Then check the _Spring Boot Dashboard_ extension if it already shows `soprafs24` and hit the play button to start the server. If it doesn't show up, restart VS Code and check again.
+## 👨🏾‍🔧 **Technologies Used:**
 
-## Building with Gradle
-You can use the local Gradle Wrapper to build the application.
--   macOS: `./gradlew`
--   Linux: `./gradlew`
--   Windows: `./gradlew.bat`
+CHAT IS MISSING! (FIREBASE API IS MISSING!)
 
-More Information about [Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html) and [Gradle](https://gradle.org/docs/).
+### **⚙️ Backend:**
 
-### Build
+| **Technology**        | **Purpose**   | **Source** | 
+|--------------------| ---------- | ------------------ |
+| Spring Boot 2.4 | A Java-based framework that simplifies backend development, particularly for building RESTful APIs. | [SpringBoot](https://docs.spring.io/spring-boot/docs/2.4.0/reference/htmlsingle/)| 
+| JWT | A secure and compact mechanism for transmitting user session information. Enables stateless authentication between client and server. | [JWT](https://jwt.io/introduction) | 
+| MariaDB | A fast and reliable open-source relational database. Stores core application data such as users, vaults, notes, and permission settings. | [MariaDB](https://mariadb.org/documentation/) | 
+| Yjs | A CRDT-based collaboration framework enabling concurrent editing by multiple users. Facilitates real-time synchronization of shared documents. | [Yjs](https://yjs.dev/) | 
+| Docker | A platform for building, shipping, and running applications in isolated containers. Ensures consistent development and deployment environments across systems. | [Docker](https://docs.docker.com/) | 
 
-```bash
+## **👨🏼‍💻 Main Components:**
+
+### **⚙️ Backend:**
+
+| **Component**        | **Purpose**   | **Link** | 
+|--------------------| ---------- | ------------------ |
+| UserController | Handles user authentication and registration. | []()| 
+| Vault Controller | Manages CRUD operations for vaults, including listing and creating. |  | 
+| Note Controller | Handles all note-related endpoints under a vault. | | 
+| Vault Permission Controller | Manages sharing logic by assigning user roles (OWNER, EDITOR) to vaults. | | 
+| JwtFilter & JwtUtil |Extracts and validates the token for secured requests. |  | 
+
+## **👩🏻‍🚀 Launch & Deployment:**
+
+### **⚙️ Backend:**
+1️⃣ **Build the project**
+```
 ./gradlew build
 ```
-
-### Run
-
-```bash
+2️⃣ **Run the application**
+```
 ./gradlew bootRun
 ```
-
-You can verify that the server is running by visiting `localhost:8080` in your browser.
-
-### Test
-
-```bash
+3️⃣ **Run backend tests**
+```
 ./gradlew test
 ```
-
-### Development Mode
-You can start the backend in development mode, this will automatically trigger a new build and reload the application
-once the content of a file has been changed.
-
-Start two terminal windows and run:
-
-`./gradlew build --continuous`
-
-and in the other one:
-
-`./gradlew bootRun`
-
-If you want to avoid running all tests with every change, use the following command instead:
-
-`./gradlew build --continuous -xtest`
-
-## API Endpoint Testing with Postman
-We recommend using [Postman](https://www.getpostman.com) to test your API Endpoints.
-
-## Debugging
-If something is not working and/or you don't know what is going on. We recommend using a debugger and step-through the process step-by-step.
-
-To configure a debugger for SpringBoot's Tomcat servlet (i.e. the process you start with `./gradlew bootRun` command), do the following:
-
-1. Open Tab: **Run**/Edit Configurations
-2. Add a new Remote Configuration and name it properly
-3. Start the Server in Debug mode: `./gradlew bootRun --debug-jvm`
-4. Press `Shift + F9` or the use **Run**/Debug "Name of your task"
-5. Set breakpoints in the application where you need it
-6. Step through the process one step at a time
-
-## Testing
-Have a look here: https://www.baeldung.com/spring-boot-testing
-
-<br>
-<br>
-<br>
-
-## Docker
-
-### Introduction
-This year, for the first time, Docker will be used to ease the process of deployment.\
-Docker is a tool that uses containers as isolated environments, ensuring that the application runs consistently and uniformly across different devices.\
-Everything in this repository is already set up to minimize your effort for deployment.\
-All changes to the main branch will automatically be pushed to dockerhub and optimized for production.
-
-### Setup
-1. **One** member of the team should create an account on [dockerhub](https://hub.docker.com/), _incorporating the group number into the account name_, for example, `SoPra_group_XX`.\
-2. This account then creates a repository on dockerhub with the _same name as the group's Github repository name_.\
-3. Finally, the person's account details need to be added as [secrets](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) to the group's repository:
-    - dockerhub_username (the username of the dockerhub account from step 1, for example, `SoPra_group_XX`)
-    - dockerhub_password (a generated PAT([personal access token](https://docs.docker.com/docker-hub/access-tokens/)) of the account with read and write access)
-    - dockerhub_repo_name (the name of the dockerhub repository from step 2)
-
-### Pull and run
-Once the image is created and has been successfully pushed to dockerhub, the image can be run on any machine.\
-Ensure that [Docker](https://www.docker.com/) is installed on the machine you wish to run the container.\
-First, pull (download) the image with the following command, replacing your username and repository name accordingly.
-
-```docker pull <dockerhub_username>/<dockerhub_repo_name>```
-
-Then, run the image in a container with the following command, again replacing _<dockerhub_username>_ and _<dockerhub_repo_name>_ accordingly.
-
-```docker run -p 3000:3000 <dockerhub_username>/<dockerhub_repo_name>```
-
-<br>
-<br>
-<br>
-
-## Development Setup
-
-### Prerequisites
-Docker and Docker Compose installed.
-
-### Steps to Set Up
-
-Start the Services: From the project root, run:
-
-```bash
-docker-compose up --build
+4️⃣ **(Optional) Use Docker Compose**
 ```
-
-This will build and start the following services:
-
-- Backend: Spring Boot application running on localhost:8080.
-- MariaDB: Database accessible within the Docker network.
-- Adminer: Web-based database management tool accessible at localhost:8081.
-
-### Access the Services:
-
-- Backend: Open your browser and go to http://localhost:8080.
-- Adminer: Open your browser and go to http://localhost:8081. Use the following credentials to log in:
-  - System: MariaDB 
-  - Server: mariadb-dev 
-  - Username: dev 
-  - Password: dev 
-  - Database: sopra-mariadb-dev
-
-### Stopping the Services:
-To stop the services, run:
-
-```bash
-docker-compose down
+docker-compose up --build (BUT GPT ADVISE THIS? docker-compose up)
 ```
+---
+## 🌊 **Illustrations and Flow of the App:**
+
+### **1-) Landing → Auth:**
+
+[screenshot]
+
+- User clicks Login / Register (Enters username + password)
+
+### **2-) Vaults Dashboard:**
+
+[screenshot]
+
+- User sees my vaults list.
+- User sees shared vaults.
+- User can create new vaults.
+
+#### **2.1-) Vault → Notes:**
+- Click the vault card (notes button) → routed to /vaults/[id]/notes
+- (For further details of notifications page please check section 6)
+#### **2.2-) Vault → Profile:**
+- Click the profile button → routed to /profile/[id]
+- (For further details of profile page please check section 3)
+
+#### **2.3-) Vault → Vault_Settings:**
+- Click the settings button → routed to / /vaults/[vault_id]/settings
+
+**Functionality (Vault Settings Page)**: 
+[screenshot]
+
+### **3-) Profile Page:**
+[screenshot]
+- Sees user_id, creation_date and status.
+
+#### **3.1-) Profile → Dashboard:**
+- User can see all registered users and their status.
+
+#### **3.2-) Profile → Notifications:**
+- User can see all vault invitations
+- (For further details of notifications page please check section 5)
+
+### **4-) Vault Settings Page:**
+[screenshot]
+- User can change the vault name.
+- User can send invitations to invite new users to work in same vault. (Permissions Card)
+
+### **5-) Notifications Page:**
+[screenshot]
+- User can see all invitations that have received.
+
+### **6-) Notes page:**
+[screenshot]
+- User can create new notes.
+
+#### **6.1-) Notes → Note_Settings:**
+- Click the notes card (settings button) → routed /vaults/[vault_id]/notes/[notes_id]/settings
+- (For further details of notes settings page please check section X)
+
+#### **6.2-) Notes → Editor:**
+- Click the notes card (editor button) → routed /vaults/[vault_id]/notes/[notes_id]
+- (For further details of editor page please check section X)
+
+#### **6.3-) Notes → Profile:**
+- (We already mentioned in section 3.)
+
+### **7-) Notes Settings page:**
+[screenshot]
+
+- User can change the note name.
+- User can give a another user a role directly (without invitation, it's different than vault settings page)
+
+### **8-) Editor page:**
+[screenshot]
+
+- User will see the basic markdown editor panel when they enter the editor page.
+- In the left sliding window (green square), other notes in that spesific vault can be seen.
+- In the right sliding window (blue square), idea linkage graph and chat can be seen.
+
+## 🤝 **Want to Contribute?**
+
+- We welcome contributions from the community! If you'd like to add new features, fix bugs, or improve documentation, follow the steps below:
+
+1. Fork the repository
+2. Create a new feature branch (`git checkout -b feature/my-contribution`)
+3. Commit your changes and push to your fork
+4. Open a pull request describing your changes
+
+### 📈 **Potential Improvements:**
+
+#### **PDF Upload & Note Extraction:**
+- Enable users to upload a PDF and automatically generate notes from its content (can be ideal for research papers), reports, or contracts.
+
+#### **Role Change Notifications:**
+- Instead of instantly updating roles on the notes settings page, show a user-friendly notification when someone’s permission level is changed.
+
+## 🏆 **Authors and Acknowledgement:**
+
+- This project was developed as part of the FS25 Software Engineering Lab at the University of Zurich.
+- Special thanks to Timon Leupp for his continuous support and valuable guidance throughout the project.
+
+### 👷‍♀️👷‍♂️ **Authors**:
+
+| **Contributor**        | **ID**   | **Github Page** | 
+|--------------------| ---------- | ------------------ |
+| Klevis Nrecaj |22-725-832| [Klevis](https://github.com/Klevis27) | 
+| Oliver Hostettler |22-717-003| [Oliver](https://github.com/AntWarz) |
+| Sven Vestli |20-916-110| [Sven](https://github.com/SvenVest) |
+| Elif Deniz İsbuga |24-745-911| [Elif](https://github.com/elifdenizi) |
+| Necati Furkan Colak |24-746-323| [Necati](https://github.com/nfcolak) |
+
+
+## **⚖️ License:**
+
+MIT License
+
+Copyright (c) 2025 Klevis27
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

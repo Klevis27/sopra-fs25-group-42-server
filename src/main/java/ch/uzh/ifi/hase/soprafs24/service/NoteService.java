@@ -4,8 +4,10 @@ import ch.uzh.ifi.hase.soprafs24.entity.Note;
 import ch.uzh.ifi.hase.soprafs24.entity.NotePermission;
 import ch.uzh.ifi.hase.soprafs24.entity.User;
 import ch.uzh.ifi.hase.soprafs24.entity.Vault;
+import ch.uzh.ifi.hase.soprafs24.entity.VaultPermission;
 import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
 import ch.uzh.ifi.hase.soprafs24.repository.NotePermissionRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.VaultPermissionRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
@@ -15,9 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Set;
+
 
 @Service
 public class NoteService {
@@ -26,6 +31,7 @@ public class NoteService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final NotePermissionRepository notePermissionRepository;
+    private final VaultPermissionRepository vaultPermissionRepository;
     private final NoteRepository noteRepository;
 
     @Autowired
@@ -33,11 +39,13 @@ public class NoteService {
                        JwtUtil jwtUtil,
                        VaultRepository vaultRepository,
                        NotePermissionRepository notePermissionRepository,
+                       VaultPermissionRepository vaultPermissionRepository,
                        NoteRepository noteRepository) {
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
         this.userRepository = userRepository;
         this.notePermissionRepository = notePermissionRepository;
+        this.vaultPermissionRepository = vaultPermissionRepository;
         this.noteRepository = noteRepository;
     }
 
@@ -84,18 +92,46 @@ public class NoteService {
      * Returns all permissions for a note.
      */
     public List<NotePermissionDTO> getNotePermissions(Long noteId) {
-        List<NotePermission> permissions = notePermissionRepository.findByNoteId(noteId);
+    Note note = noteRepository.findNoteById(noteId);
+    Vault vault = note.getVault();
 
-        return permissions.stream()
-                .map(permission -> {
-                    Optional<User> user = userRepository.findById(permission.getUserId());
-                    String username = user.map(User::getUsername).orElse("Unknown");
-                    return new NotePermissionDTO(username, permission.getRole());
-                })
-                .collect(Collectors.toList());
+    // 1. Explicit note permissions
+    List<NotePermission> notePermissions = notePermissionRepository.findByNoteId(noteId);
+
+    // 2. Vault-level permissions
+    List<VaultPermission> vaultPermissions = vaultPermissionRepository.findByVault(vault);
+
+    // Track explicit note permission user IDs
+    Set<Long> explicitUserIds = notePermissions.stream()
+            .map(NotePermission::getUserId)
+            .collect(Collectors.toSet());
+
+    List<NotePermissionDTO> results = new ArrayList<>();
+
+    // Add explicit note permissions
+    for (NotePermission np : notePermissions) {
+        Optional<User> user = userRepository.findById(np.getUserId());
+        user.ifPresent(u -> results.add(new NotePermissionDTO(u.getUsername(), np.getRole())));
     }
+
+    // Add inherited vault permissions (if not already in the notePermissions)
+    for (VaultPermission vp : vaultPermissions) {
+        if (!explicitUserIds.contains(vp.getUser().getId())) {
+            results.add(new NotePermissionDTO(vp.getUser().getUsername(), vp.getRole().name()));
+        }
+    }
+
+    return results;
+}
+
 
     public List<Note> getSharedNotesForUser(Long userId) {
-        return notePermissionRepository.findSharedNotesByUserId(userId);
+        List<Note> allAccessibleNotes = noteRepository.findAllNotesUserCanAccess(userId);
+    
+        return allAccessibleNotes.stream()
+            .filter(note -> !note.getVault().getOwner().getId().equals(userId)) // ⛔ not owned
+            .collect(Collectors.toList());
     }
+    
+    
 }

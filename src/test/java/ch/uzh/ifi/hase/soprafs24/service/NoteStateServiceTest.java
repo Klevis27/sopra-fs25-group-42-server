@@ -63,7 +63,6 @@ class NoteStateServiceTest {
     //ToDo: does not pass not surprising
     /*
     @Test
-
     void updateNoteStateContent_existingState_returnsTrueAndUpdates() {
         // Arrange
         when(noteRepository.findNoteById(1L)).thenReturn(testNote);

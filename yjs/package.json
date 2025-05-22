@@ -5,9 +5,14 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "ws": "^8.11.0",
+    "@types/node": "^22.15.21",
+    "@types/ws": "^8.18.1",
+    "axios": "^1.6.2",
+    "lib0": "^0.2.108",
+    "lodash.debounce": "^4.0.8",
+    "ws": "^8.5.0",
+    "y-protocols": "^1.0.6",
     "y-websocket": "^1.4.5",
-    "y-redis": "^1.0.3",
-    "axios": "^1.6.8"
+    "yjs": "^13.6.26"
   }
 }
