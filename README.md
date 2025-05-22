@@ -48,19 +48,15 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 ### **⚙️ Backend:**
 1️⃣ **Build the project**
 ```
-./gradlew build
+docker-compose build (optionally "docker-compose build --no-cache")
 ```
 2️⃣ **Run the application**
 ```
-./gradlew bootRun
+docker-compose up
 ```
 3️⃣ **Run backend tests**
 ```
 ./gradlew test
-```
-4️⃣ **(Optional) Use Docker Compose**
-```
-docker-compose up --build (BUT GPT ADVISE THIS? docker-compose up)
 ```
 ### **🕸️ Websocket Development:**
 
