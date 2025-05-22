@@ -667,5 +667,25 @@ public class NoteControllerTest {
         mockMvc.perform(getRequest)
                 .andExpect(status().isUnauthorized());
     }
+    @Test
+    public void createNote_emptyTitle_BadRequest() throws Exception {
+        Vault vault = new Vault();
+        User owner = new User();
+        owner.setId(1L);
+        vault.setOwner(owner);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(vaultRepository.findById(1L)).willReturn(Optional.of(vault));
+
+        MockHttpServletRequestBuilder postRequest = post("/vaults/1/notes")
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"\"}");
+
+        mockMvc.perform(postRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Title cannot be empty"));
+    }
 
 }
