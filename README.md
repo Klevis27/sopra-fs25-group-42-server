@@ -44,35 +44,18 @@ The goal of this project is to combine the powerful note-taking and linking feat
 
 ## **👩🏻‍🚀 Launch & Deployment:**
 
-### **⚙️ Backend:**
-1️⃣ **Build the project**
-```
-docker-compose build 
-```
-2️⃣ **Run the application**
-```
-docker-compose up
-```
-3️⃣ **Run backend tests**
-```
-./gradlew test
-```
-### **🕸️ Websocket Development:**
+### **🤖 Deployment:**
 
-First expose port 8080 in Dockerfile and change port 1234 to 8080 in server.js; also set isProduction to true. 
+The backend automatically deploys onto google app engine standard whenever a change is pushed onto the main branch of this repository (see .github/workflows/main.yml for reference).
 
-Then run:
+The websocket needs to be deployed onto the google cloud run manually, make sure the exposed port in the yjs/Dockerfile is 8080, the port fallback in the yjs/server.js is 8080 and isProduction in yjs/server.js is set to true before opening up a terminal in the project root and running these commands:
+
 ```
 cd yjs/
-```
-```
-gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
-```
-```
-3. gcloud run deploy yjs-server \
-```
 
-```
+gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
+
+gcloud run deploy yjs-server \
   --image gcr.io/sopra-fs25-group-42-server/yjs-server:latest \
   --platform managed \
   --region europe-west6 \
@@ -83,7 +66,24 @@ gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
   --min-instances 1 \
   --max-instances 3
 ```
----
+
+### **👾 In Development:**
+
+First, change the exposed port from 8080 to 1234 in the yjs/Dockerfile, also change the exposed port fallback at the end of the yjs/server.js from 8080 to 1234; finally, set isProduction in yjs/server.js to false. Then run these commands in a terminal in the project root:
+
+1️⃣ **Build the project**
+```
+docker-compose build
+```
+2️⃣ **Run the application**
+```
+docker-compose up
+```
+3️⃣ **Run backend tests**
+```
+./gradlew test
+```
+
 ## 🌊 **Illustrations and Flow of the App:**
 
 ### **1-) Landing → Auth:**
