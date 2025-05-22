@@ -37,10 +37,10 @@ The goal of this project is to combine the powerful note-taking and linking feat
 | **Component**        | **Purpose**   | **Link** | 
 |--------------------| ---------- | ------------------ |
 | UserController | Handles user authentication and registration. | [UserController](https://github.com/Klevis27/sopra-fs25-group-42-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/controller/UserController.java)| 
-| Vault Controller | Manages CRUD operations for vaults, including listing and creating. |  | 
-| Note Controller | Handles all note-related endpoints under a vault. | | 
-| Vault Permission Controller | Manages sharing logic by assigning user roles (OWNER, EDITOR) to vaults. | | 
-| JwtFilter & JwtUtil |Extracts and validates the token for secured requests. |  | 
+| Vault Controller | Manages CRUD operations for vaults, including listing and creating. |[VaultController](https://github.com/Klevis27/sopra-fs25-group-42-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/controller/VaultController.java) | 
+| Note Controller | Handles all note-related endpoints under a vault. |[NoteController](https://github.com/Klevis27/sopra-fs25-group-42-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/controller/NoteController.java)| 
+| Vault Permission Controller | Manages sharing logic by assigning user roles (OWNER, EDITOR) to vaults. |[VaultPermissionController](https://github.com/Klevis27/sopra-fs25-group-42-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/controller/VaultPermissionController.java) | 
+| JwtFilter & JwtUtil |Extracts and validates the token for secured requests. | [JwtFilter](https://github.com/Klevis27/sopra-fs25-group-42-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/jwt/JwtFilter.java)  & [JwtUtil](https://github.com/Klevis27/sopra-fs25-group-42-server/blob/main/src/main/java/ch/uzh/ifi/hase/soprafs24/jwt/JwtUtil.java)  | 
 
 ## **👩🏻‍🚀 Launch & Deployment:**
 
