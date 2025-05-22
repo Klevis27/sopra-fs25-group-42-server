@@ -65,7 +65,8 @@ docker-compose up --build (BUT GPT ADVISE THIS? docker-compose up)
 *** 🕸️ Websocket Development:***
 DEPLOYMENT
 
-First expose port 8080 in Dockerfile and change port 1234 to 8080 in server.js; also set isProduction to true. Then run:
+First expose port 8080 in Dockerfile and change port 1234 to 8080 in server.js; also set isProduction to true. 
+Then run:
 ```
 cd yjs/
 ```
