@@ -138,7 +138,7 @@ let encoding, decoding;
                     console.log(`[WS] Unknown message type: ${messageType}`);
                 }
             } catch (e) {
-                console.error('[WS ERROR] for this message:', message);
+                console.error('[WS ERROR]');
             }
         });
         ws.on('error', (err) => {
