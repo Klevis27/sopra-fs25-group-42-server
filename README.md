@@ -63,7 +63,30 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 docker-compose up --build (BUT GPT ADVISE THIS? docker-compose up)
 ```
 *** 🕸️ Websocket Development:***
+DEPLOYMENT
 
+First expose port 8080 in Dockerfile and change port 1234 to 8080 in server.js; also set isProduction to true. Then run:
+```
+cd yjs/
+```
+```
+gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
+```
+```
+3. gcloud run deploy yjs-server \
+```
+
+```
+  --image gcr.io/sopra-fs25-group-42-server/yjs-server:latest \
+  --platform managed \
+  --region europe-west6 \
+  --allow-unauthenticated \
+  --memory 1Gi \
+  --concurrency 50 \
+  --timeout 3600 \
+  --min-instances 1 \
+  --max-instances 3
+```
 ---
 ## 🌊 **Illustrations and Flow of the App:**
 
