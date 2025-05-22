@@ -15,6 +15,7 @@ import ch.uzh.ifi.hase.soprafs24.repository.NotePermissionRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.NoteStatesRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.UserRepository;
+import ch.uzh.ifi.hase.soprafs24.repository.VaultPermissionRepository;
 import ch.uzh.ifi.hase.soprafs24.repository.VaultRepository;
 import ch.uzh.ifi.hase.soprafs24.rest.dto.NotePermissionDTO;
 
@@ -55,11 +56,11 @@ public class NoteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-/*    @MockBean
+   @MockBean
     private UserService userService;
 
     @MockBean
-    private VaultService vaultService;*/
+    private VaultService vaultService;
 
     @MockBean
     private NoteService noteService;
@@ -67,26 +68,29 @@ public class NoteControllerTest {
     @MockBean
     private JwtUtil jwtUtil;
 
-/*    @MockBean
-    private UserRepository userRepository;*/
+   @MockBean
+    private UserRepository userRepository;
 
     @MockBean
     private VaultRepository vaultRepository;
 
+    @MockBean 
+    private VaultPermissionRepository vaultPermissionRepository;
+
     @MockBean
     private NoteRepository noteRepository;
 
-/*    @MockBean
-    private NoteStatesRepository noteStatesRepository;*/
+   @MockBean
+    private NoteStatesRepository noteStatesRepository;
 
     @MockBean
     private NoteLinkRepository noteLinkRepository;
 
-/*    @MockBean
+   @MockBean
     private NotePermissionRepository notePermissionRepository;
 
     @MockBean
-    private BCryptPasswordEncoder encoder;*/
+    private BCryptPasswordEncoder encoder;
 
     // Helper method to convert objects to JSON
     private String asJsonString(final Object object) {
