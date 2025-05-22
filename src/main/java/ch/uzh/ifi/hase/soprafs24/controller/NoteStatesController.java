@@ -22,6 +22,8 @@ public class NoteStatesController {
     public ResponseEntity<byte[]> getNoteState(@PathVariable Long noteId) {
         byte[] state = noteStateService.loadState(noteId);
         // always return an octet‐stream, even if empty
+
+        //Needs an assertion whether state is null. If state is null, length cannot be read --> NullPointerException
         return ResponseEntity.ok().contentLength(state.length).body(state);
     }
 

@@ -1,167 +1,121 @@
-// package ch.uzh.ifi.hase.soprafs24.controller;
+package ch.uzh.ifi.hase.soprafs24.controller;
 
-// import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePostDTO;
-// import ch.uzh.ifi.hase.soprafs24.rest.dto.NoteStatePutDTO;
-// import ch.uzh.ifi.hase.soprafs24.service.NoteStateService;
-// import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
-// import com.fasterxml.jackson.core.JsonProcessingException;
-// import com.fasterxml.jackson.databind.ObjectMapper;
-// import org.junit.jupiter.api.Test;
-// import org.mockito.Mockito;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-// import org.springframework.boot.test.mock.mockito.MockBean;
-// import org.springframework.http.MediaType;
-// import org.springframework.test.web.servlet.MockMvc;
-// import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import ch.uzh.ifi.hase.soprafs24.service.NoteStateService;
+import ch.uzh.ifi.hase.soprafs24.jwt.JwtUtil;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
-// import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-// import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-// import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-// @WebMvcTest(NoteStatesController.class)
-// public class NoteStatesControllerTest {
+import static org.mockito.BDDMockito.given;
 
-//     @Autowired
-//     private MockMvc mockMvc;
 
-//     @MockBean
-//     private NoteStateService noteStateService;
+@WebMvcTest(NoteStatesController.class)
+@AutoConfigureMockMvc(addFilters = false) 
+public class NoteStatesControllerTest {
 
-//     @MockBean
-//     private JwtUtil jwtUtil; // Needed if your endpoints require authentication
+    @Autowired
+    private MockMvc mockMvc;
 
-//     private String asJsonString(final Object object) {
-//         try {
-//             return new ObjectMapper().writeValueAsString(object);
-//         } catch (JsonProcessingException e) {
-//             throw new RuntimeException(e);
-//         }
-//     }
+    @MockBean
+    private NoteStateService noteStateService;
 
-//     // ===== UPDATE NOTE STATE TESTS =====
-//     @Test
-//     public void updateNoteStateContent_validInput_success() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePutDTO noteStatePutDTO = new NoteStatePutDTO();
-//         byte[] content = new byte[1];
-//         noteStatePutDTO.setNoteId(noteId);
-//         noteStatePutDTO.setContent(content);
+    @MockBean
+    private JwtUtil jwtUtil;
 
-//         Mockito.when(noteStateService.updateNoteStateContent(Mockito.any())).thenReturn(true);
-//         Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+    @Test
+    public void getNoteState_validInput_returnsState() throws Exception {
+        Long noteId = 1L;
+        byte[] content = new byte[] { 1, 2, 3 };
 
-//         // Execute & Verify
-//         mockMvc.perform(put("/noteState/{note_Id}", noteId)
-//                 .header("Authorization", "Bearer validToken")
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePutDTO)))
-//                 .andExpect(status().isOk())
-//                 .andExpect(jsonPath("$", is("Note state content updated successfully")));
-//     }
+        Mockito.when(noteStateService.loadState(noteId)).thenReturn(content);
+        Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
-//     @Test
-//     public void updateNoteStateContent_idMismatch_badRequest() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePutDTO noteStatePutDTO = new NoteStatePutDTO();
-//         noteStatePutDTO.setNoteId(2L); // Different ID
+        mockMvc.perform(get("/notes/{noteId}/state", noteId)
+                .header("Authorization", "Bearer validToken"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(content().bytes(content));
+    }
 
-//         // Execute & Verify
-//         mockMvc.perform(put("/noteState/{note_Id}", noteId)
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePutDTO)))
-//                 .andExpect(status().isBadRequest())
-//                 .andExpect(jsonPath("$", is("Note ID in URL does not match the one in the body")));
-//     }
+    @Test
+    public void getNoteState_emptyState_returnsEmpty() throws Exception {
+        Long noteId = 1L;
+        byte[] emptyContent = new byte[0];
 
-//     @Test
-//     public void updateNoteStateContent_noteNotFound_notFound() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePutDTO noteStatePutDTO = new NoteStatePutDTO();
-//         noteStatePutDTO.setNoteId(noteId);
+        given(noteStateService.loadState(noteId)).willReturn(emptyContent);
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).willReturn(true);
 
-//         Mockito.when(noteStateService.updateNoteStateContent(Mockito.any())).thenReturn(false);
+        mockMvc.perform(get("/notes/1/state")
+                .header("Authorization", "Bearer validToken"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_OCTET_STREAM))
+                .andExpect(content().bytes(emptyContent));
+    }
 
-//         // Execute & Verify
-//         mockMvc.perform(put("/noteState/{note_Id}", noteId)
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePutDTO)))
-//                 .andExpect(status().isNotFound())
-//                 .andExpect(jsonPath("$", is("Note state not found")));
-//     }
+    @Test
+    public void upsertNoteState_updateSuccess_returnsNoContent() throws Exception {
+        Long noteId = 1L;
+        byte[] content = new byte[] { 1, 2, 3 };
 
-//     // ===== CREATE NOTE STATE TESTS =====
-//     @Test
-//     public void createNoteState_validInput_success() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePostDTO noteStatePostDTO = new NoteStatePostDTO();
-//         byte[] content = new byte[1];
-//         noteStatePostDTO.setNoteId(noteId);
-//         noteStatePostDTO.setContent(content);
+        Mockito.when(noteStateService.updateNoteStateContent(Mockito.any())).thenReturn(true);
+        Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
-//         Mockito.when(noteStateService.createNoteState(Mockito.any())).thenReturn(true);
-//         Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+        mockMvc.perform(put("/notes/{noteId}/state", noteId)
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .content(content))
+                .andExpect(status().isNoContent());
+    }
 
-//         // Execute & Verify
-//         mockMvc.perform(post("/noteState/{note_Id}", noteId)
-//                 .header("Authorization", "Bearer validToken")
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePostDTO)))
-//                 .andExpect(status().isOk())
-//                 .andExpect(jsonPath("$", is("Note state created successfully")));
-//     }
+    @Test
+    public void upsertNoteState_createSuccess_returnsCreated() throws Exception {
+        Long noteId = 1L;
+        byte[] content = new byte[] { 1, 2, 3 };
 
-//     @Test
-//     public void createNoteState_idMismatch_badRequest() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePostDTO noteStatePostDTO = new NoteStatePostDTO();
-//         noteStatePostDTO.setNoteId(2L); // Different ID
+        Mockito.when(noteStateService.updateNoteStateContent(Mockito.any())).thenReturn(false);
+        Mockito.when(noteStateService.createNoteState(Mockito.any())).thenReturn(true);
+        Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
-//         // Execute & Verify
-//         mockMvc.perform(post("/noteState/{note_Id}", noteId)
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePostDTO)))
-//                 .andExpect(status().isBadRequest())
-//                 .andExpect(jsonPath("$", is("Note ID in URL does not match the one in the body")));
-//     }
+        mockMvc.perform(put("/notes/{noteId}/state", noteId)
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .content(content))
+                .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/notes/" + noteId + "/state"));
+    }
 
-//     @Test
-//     public void createNoteState_creationFailed_notFound() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePostDTO noteStatePostDTO = new NoteStatePostDTO();
-//         noteStatePostDTO.setNoteId(noteId);
+    @Test
+    public void upsertNoteState_neitherUpdateNorCreate_returnsNotFound() throws Exception {
+        Long noteId = 1L;
+        byte[] content = new byte[] { 1, 2, 3 };
 
-//         //Mockito.when(noteStateService.createNoteState(Mockito.any())).thenReturn(false);
+        Mockito.when(noteStateService.updateNoteStateContent(Mockito.any())).thenReturn(false);
+        Mockito.when(noteStateService.createNoteState(Mockito.any())).thenReturn(false);
+        Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
 
-//         // Execute & Verify
-//         mockMvc.perform(post("/noteState/{note_Id}", noteId)
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePostDTO)))
-//                 .andExpect(status().isNotFound())
-//                 .andExpect(jsonPath("$", is("Note state could not be created")));
-//     }
+        mockMvc.perform(put("/notes/{noteId}/state", noteId)
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .content(content))
+                .andExpect(status().isNotFound());
+    }
 
-//     // ===== SECURITY TESTS =====
-//     @Test
-//     public void updateNoteStateContent_unauthorized_returnsUnauthorized() throws Exception {
-//         // Setup
-//         Long noteId = 1L;
-//         NoteStatePutDTO noteStatePutDTO = new NoteStatePutDTO();
-//         noteStatePutDTO.setNoteId(noteId);
+    @Test
+    public void getNoteState_unauthorized_returnsUnauthorized() throws Exception {
+        Long noteId = 1L;
 
-//         Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
+        Mockito.when(jwtUtil.validateToken(Mockito.anyString(), Mockito.anyString())).thenReturn(false);
 
-//         // Execute & Verify
-//         mockMvc.perform(put("/noteState/{note_Id}", noteId)
-//                 .header("Authorization", "Bearer invalidToken")
-//                 .contentType(MediaType.APPLICATION_JSON)
-//                 .content(asJsonString(noteStatePutDTO)))
-//                 .andExpect(status().isUnauthorized());
-//     }
-// }
+        mockMvc.perform(get("/notes/{noteId}/state", noteId)
+                .header("Authorization", "Bearer invalidToken"))
+                .andExpect(status().isUnauthorized());
+    }
+}
