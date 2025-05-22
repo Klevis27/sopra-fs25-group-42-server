@@ -87,15 +87,11 @@ gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
 ## 🌊 **Illustrations and Flow of the App:**
 
 ### **1-) Landing → Auth:**
-
-[screenshot]
-
+![Landing](docs/landing.png)
 - User clicks Login / Register (Enters username + password)
 
 ### **2-) Vaults Dashboard:**
-
-[screenshot]
-
+![vaultcontainer](docs/vaultcontainer.png)
 - User sees my vaults list.
 - User sees shared vaults.
 - User can create new vaults.
@@ -114,7 +110,7 @@ gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
 [screenshot]
 
 ### **3-) Profile Page:**
-[screenshot]
+![profile](docs/profile.png)
 - Sees user_id, creation_date and status.
 
 #### **3.1-) Profile → Dashboard:**
@@ -125,16 +121,16 @@ gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
 - (For further details of notifications page please check section 5)
 
 ### **4-) Vault Settings Page:**
-[screenshot]
+![profile](docs/vaultsettings.png)
 - User can change the vault name.
 - User can send invitations to invite new users to work in same vault. (Permissions Card)
 
 ### **5-) Notifications Page:**
-[screenshot]
+![profile](docs/notifications.png)
 - User can see all invitations that have received.
 
 ### **6-) Notes page:**
-[screenshot]
+![profile](docs/notecontainer.png)
 - User can create new notes.
 
 #### **6.1-) Notes → Note_Settings:**
@@ -149,18 +145,24 @@ gcloud builds submit --tag gcr.io/sopra-fs25-group-42-server/yjs-server:latest.
 - (We already mentioned in section 3.)
 
 ### **7-) Notes Settings page:**
-[screenshot]
-
+![profile](docs/notesettings.png)
 - User can change the note name.
 - User can give a another user a role directly (without invitation, it's different than vault settings page)
 
 ### **8-) Editor page:**
-[screenshot]
-
 - User will see the basic markdown editor panel when they enter the editor page.
 - In the left sliding window (green square), other notes in that spesific vault can be seen.
-- In the right sliding window (blue square), idea linkage graph and chat can be seen.
+![profile](docs/sidebar2.png)
 
+#### **The commands in markdown editor:**
+![profile](docs/markdowneditor.png)
+
+#### **Graph Linkage:**
+* By using "[[note_name]]", you can link the notes between each other in graph linkage part.
+![profile](docs/graphlinkage.png)
+#### **Chat:**
+* Editor page also allow users to chat on the same screen
+![profile](docs/chat.png)
 ## 🤝 **Want to Contribute?**
 
 - We welcome contributions from the community! If you'd like to add new features, fix bugs, or improve documentation, follow the steps below:
