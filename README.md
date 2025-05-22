@@ -62,7 +62,7 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 ```
 docker-compose up --build (BUT GPT ADVISE THIS? docker-compose up)
 ```
-### ** 🕸️ Websocket Development:**
+### **🕸️ Websocket Development:**
 
 First expose port 8080 in Dockerfile and change port 1234 to 8080 in server.js; also set isProduction to true. 
 
