@@ -15,6 +15,7 @@ import java.util.List;
 @Repository
 public interface NoteLinkRepository extends JpaRepository<NoteLink, Long> {
     List<NoteLink> findAllByVault(Vault vault);
+    NoteLink findByVault(Vault vault);
 
     @Modifying
     @Transactional

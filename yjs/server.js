@@ -202,5 +202,4 @@ let encoding, decoding;
     server.listen(8080, () => {
         console.log('[SERVER] Running on port 8080');
     });
-
 })();
