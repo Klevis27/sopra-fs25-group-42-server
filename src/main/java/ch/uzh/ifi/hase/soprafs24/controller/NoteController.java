@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping                     // base URL boş – tüm mapping’ler aynı kalıyor
+@RequestMapping // base URL boş – tüm mapping’ler aynı kalıyor
 public class NoteController {
 
     private final JwtUtil jwtUtil;
@@ -32,14 +32,15 @@ public class NoteController {
     private final VaultService vaultService;
 
     public NoteController(JwtUtil jwtUtil,
-                          VaultRepository vaultRepository,
-                          NoteRepository noteRepository,
-                          NoteLinkRepository noteLinkRepository,
-                          NoteStatesRepository noteStatesRepository,
-                          NotePermissionRepository notePermissionRepository,
-                          VaultPermissionRepository vaultPermissionRepository,
-                          NoteService noteService,
-                          VaultService vaultService   /* yalnızca wiring için */) {
+                          
+                  VaultRepository vaultRepository,
+                  NoteRepository noteRepository,
+                  NoteLinkRepository noteLinkRepository,
+                  NoteStatesRepository noteStatesRepository,
+                  NotePermissionRepository notePermissionRepository,
+                  VaultPermissionRepository vaultPermissionRepository,
+                  NoteService noteService,
+                  VaultService vaultService   /* yalnızca wiring için */) {
 
         this.jwtUtil = jwtUtil;
         this.vaultRepository = vaultRepository;
@@ -52,9 +53,11 @@ public class NoteController {
         this.vaultService = vaultService;
     }
 
-    /* -------------------------------------------------
-       LIST – notes & links
-       ------------------------------------------------- */
+    /*
+     * -------------------------------------------------
+     * LIST – notes & links
+     * -------------------------------------------------
+     */
 
        @GetMapping("/vaults/{vaultId}/notes")
        public ResponseEntity<List<NotesGetDTO>> getNotes(@PathVariable Long vaultId,
@@ -89,9 +92,11 @@ public class NoteController {
        }
        
 
+    // ------------------------------------NoteLinks--------------------------------//
+
     @GetMapping("/vaults/{vaultId}/note_links")
     public ResponseEntity<List<NoteLinksGetDTO>> getNoteLinks(@PathVariable Long vaultId,
-                                                              HttpServletRequest request) {
+            HttpServletRequest request) {
 
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -99,7 +104,7 @@ public class NoteController {
         }
 
         Vault vault = vaultRepository.findById(vaultId)
-                                     .orElse(null);
+                .orElse(null);
         if (vault == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -111,14 +116,114 @@ public class NoteController {
         return ResponseEntity.ok(dto);
     }
 
-    /* -------------------------------------------------
-       CREATE
-       ------------------------------------------------- */
+    @PostMapping("/vaults/{vaultId}/note_links")
+    public ResponseEntity<?> createNoteLink(@PathVariable Long vaultId,
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
+
+        String token = extractTokenFromRequest(request);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+
+        Vault vault = vaultRepository.findById(vaultId).orElse(null);
+        if (vault == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vault not found");
+        }
+
+        NoteLink noteLink = new NoteLink();
+        Note targetNote = noteRepository.findById(Long.parseLong(body.get("target"))).orElse(null);
+        Note sourceNote = noteRepository.findById(Long.parseLong(body.get("source"))).orElse(null);
+
+        if (targetNote == null || sourceNote == null) {
+            System.err.println("Either source note or target note do not exist");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Either source note or target note do not exist");
+        }
+        noteLink.setTargetNote(targetNote);
+        noteLink.setSourceNote(sourceNote);
+        noteLink.setVault(vault);
+        noteLink.setLinkType("internal");
+
+        List<NoteLink> links = noteLinkRepository.findAllByVault(vault);
+
+        boolean linkExists = false;
+        for (NoteLink link : links) {
+            if (noteLink.getSourceNote().getId() == link.getSourceNote().getId() &&
+                    noteLink.getTargetNote().getId() == link.getTargetNote().getId()) {
+                linkExists = true;
+            }
+        }
+
+        if (linkExists) {
+            System.err.println("Link exists already");
+            return ResponseEntity.status(HttpStatus.OK).body("NoteLink already exists. Continuing as normal");
+        }
+        noteLinkRepository.save(noteLink);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Note created"));
+    }
+
+    @DeleteMapping("/vaults/{vaultId}/{sourceNoteId}/{targetNoteId}/note_links")
+    public ResponseEntity<?> deleteNoteLink(@PathVariable Long vaultId,
+                                            @PathVariable Long sourceNoteId,
+                                            @PathVariable Long targetNoteId,
+                                            HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+        }
+
+        Vault vault = vaultRepository.findById(vaultId).orElse(null);
+        if (vault == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Vault not found");
+        }
+
+        Note targetNote = noteRepository.findById(targetNoteId).orElse(null);
+        Note sourceNote = noteRepository.findById(sourceNoteId).orElse(null);
+
+        if (targetNote == null || sourceNote == null) {
+            System.err.println("Either source note or target note do not exist");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Either source note or target note do not exist");
+        }
+
+        NoteLink noteLink = new NoteLink();
+        noteLink.setTargetNote(targetNote);
+        noteLink.setSourceNote(sourceNote);
+        noteLink.setVault(vault);
+        noteLink.setLinkType("internal");
+
+        List<NoteLink> links = noteLinkRepository.findAllByVault(vault);
+
+        boolean linkExists = false;
+        NoteLink linkToDelete = new NoteLink();
+        for (NoteLink link : links) {
+            if (noteLink.getSourceNote().getId() == link.getSourceNote().getId() &&
+                    noteLink.getTargetNote().getId() == link.getTargetNote().getId()) {
+                linkToDelete = link;
+                linkExists = true;
+            }
+        }
+
+        if (linkExists){
+            noteLinkRepository.delete(linkToDelete);
+        }
+        
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
+
+    // ------------------------------------NoteLinks--------------------------------//
+
+    /*
+     * -------------------------------------------------
+     * CREATE
+     * -------------------------------------------------
+     */
 
     @PostMapping("/vaults/{vaultId}/notes")
     public ResponseEntity<?> createNote(@PathVariable Long vaultId,
-                                        @RequestBody Map<String, String> body,
-                                        HttpServletRequest request) {
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
 
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -163,14 +268,16 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    /* -------------------------------------------------
-       DELETE
-       ------------------------------------------------- */
+    /*
+     * -------------------------------------------------
+     * DELETE
+     * -------------------------------------------------
+     */
 
     @Transactional
     @DeleteMapping("/notes/{noteId}")
     public ResponseEntity<?> deleteNote(@PathVariable Long noteId,
-                                        HttpServletRequest request) {
+            HttpServletRequest request) {
 
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -186,23 +293,25 @@ public class NoteController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        /* Önce bağımlı tabloları temizle */
+        /*  Önce bağımlı tabloları temizle  */
         noteStatesRepository.deleteByNote(note);
         noteLinkRepository.deleteAllByNote(note);
         notePermissionRepository.deleteAllByNote(note);
 
-        /* Sonra asıl notu sil */
+        /*  Sonra asıl notu sil  */
         noteRepository.delete(note);
         return ResponseEntity.ok().build();
     }
 
-    /* -------------------------------------------------
-       PERMISSIONS & UTILS
-       ------------------------------------------------- */
+    /*
+     * -------------------------------------------------
+     * PERMISSIONS & UTILS
+     * -------------------------------------------------
+     */
 
     @PostMapping("/notes/{noteId}/invite")
     public ResponseEntity<?> invite(@PathVariable Long noteId,
-                                    @RequestBody NotesInvitePostDTO dto) {
+            @RequestBody NotesInvitePostDTO dto) {
 
         noteService.inviteUserToNote(noteId, dto.getUsername(), dto.getRole());
         return ResponseEntity.ok("User invited");
@@ -210,7 +319,7 @@ public class NoteController {
 
     @GetMapping("/notes/{noteId}/permissions")
     public ResponseEntity<List<NotePermissionDTO>> permissions(@PathVariable Long noteId,
-                                                               HttpServletRequest request) {
+            HttpServletRequest request) {
 
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -221,7 +330,7 @@ public class NoteController {
 
     @GetMapping("/notes/{noteId}")
     public ResponseEntity<NotesGetDTO> read(@PathVariable Long noteId,
-                                            HttpServletRequest request) {
+            HttpServletRequest request) {
 
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -236,8 +345,8 @@ public class NoteController {
 
     @PutMapping("/notes/{noteId}")
     public ResponseEntity<?> rename(@PathVariable Long noteId,
-                                    @RequestBody Map<String, String> body,
-                                    HttpServletRequest request) {
+            @RequestBody Map<String, String> body,
+            HttpServletRequest request) {
 
         String token = extractTokenFromRequest(request);
         if (token == null || !jwtUtil.validateToken(token, jwtUtil.extractId(token))) {
@@ -263,7 +372,6 @@ public class NoteController {
         return ResponseEntity.ok("Title updated");
     }
 
-
     @GetMapping("/notes/shared")
 public ResponseEntity<List<NotesGetDTO>> getSharedNotes(HttpServletRequest request) {
     String token = extractTokenFromRequest(request);
@@ -288,7 +396,6 @@ public ResponseEntity<List<NotesGetDTO>> getSharedNotes(HttpServletRequest reque
 
     return ResponseEntity.ok(result);
 }
-
 
 
     /* ------------------------------------------------- */
