@@ -48,7 +48,7 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 ### **⚙️ Backend:**
 1️⃣ **Build the project**
 ```
-docker-compose build (optionally "docker-compose build --no-cache")
+docker-compose build #(optionally "docker-compose build --no-cache")
 ```
 2️⃣ **Run the application**
 ```
