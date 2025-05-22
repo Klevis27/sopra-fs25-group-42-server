@@ -144,7 +144,7 @@ public class NoteController {
 
         if (linkExists) {
             System.err.println("Link exists already");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("NoteLink already exists. Continuing as normal");
+            return ResponseEntity.status(HttpStatus.OK).body("NoteLink already exists. Continuing as normal");
         }
         noteLinkRepository.save(noteLink);
 
