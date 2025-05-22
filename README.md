@@ -62,6 +62,8 @@ CHAT IS MISSING! (FIREBASE API IS MISSING!)
 ```
 docker-compose up --build (BUT GPT ADVISE THIS? docker-compose up)
 ```
+*** 🕸️ Websocket Development:***
+
 ---
 ## 🌊 **Illustrations and Flow of the App:**
 
