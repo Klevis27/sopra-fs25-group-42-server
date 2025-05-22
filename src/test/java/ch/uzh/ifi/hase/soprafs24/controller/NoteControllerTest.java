@@ -32,6 +32,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -43,11 +44,15 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.hasSize;
+import org.mockito.verification.VerificationMode;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(NoteController.class)
 @Import(SecurityConfig.class)
@@ -56,7 +61,7 @@ public class NoteControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-   @MockBean
+    @MockBean
     private UserService userService;
 
     @MockBean
@@ -68,25 +73,25 @@ public class NoteControllerTest {
     @MockBean
     private JwtUtil jwtUtil;
 
-   @MockBean
+    @MockBean
     private UserRepository userRepository;
 
     @MockBean
     private VaultRepository vaultRepository;
 
-    @MockBean 
+    @MockBean
     private VaultPermissionRepository vaultPermissionRepository;
 
     @MockBean
     private NoteRepository noteRepository;
 
-   @MockBean
+    @MockBean
     private NoteStatesRepository noteStatesRepository;
 
     @MockBean
     private NoteLinkRepository noteLinkRepository;
 
-   @MockBean
+    @MockBean
     private NotePermissionRepository notePermissionRepository;
 
     @MockBean
@@ -96,10 +101,16 @@ public class NoteControllerTest {
     private String asJsonString(final Object object) {
         try {
             return new ObjectMapper().writeValueAsString(object);
-        } catch (JsonProcessingException e) {
+        }
+        catch (JsonProcessingException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     String.format("The request body could not be created.%s", e.toString()));
         }
+    }
+
+    // Helper to create valid auth header
+    private MockHttpServletRequestBuilder withAuth(MockHttpServletRequestBuilder builder) {
+        return builder.header("Authorization", "Bearer validToken");
     }
 
     // Test for GET "/vaults/{vault_id}/notes"
@@ -139,7 +150,6 @@ public class NoteControllerTest {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
         given(vaultRepository.findById(1L)).willReturn(Optional.of(vault));
         given(noteRepository.findAllByVault(vault)).willReturn(noteList);
-        
 
 
         MockHttpServletRequestBuilder getRequest = get("/vaults/1/notes")
@@ -294,7 +304,7 @@ public class NoteControllerTest {
         //given
         User owner = new User();
         owner.setId(1L);
-        
+
         Vault vault = new Vault();
         vault.setOwner(owner);
 
@@ -305,16 +315,16 @@ public class NoteControllerTest {
         given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
         given(vaultRepository.findById(1L)).willReturn(Optional.of(vault));
-    
+
 
         MockHttpServletRequestBuilder postRequest = post("/vaults/1/notes")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(notesPostDTO));
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(notesPostDTO));
 
         mockMvc.perform(postRequest)
-        .andDo(print())
-        .andExpect(status().isCreated());
+                .andDo(print())
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -325,13 +335,13 @@ public class NoteControllerTest {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
 
         MockHttpServletRequestBuilder postRequest = post("/vaults/1/notes")
-        .header("Authorization", "Bearer invalidToken")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(notesPostDTO));
+                .header("Authorization", "Bearer invalidToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(notesPostDTO));
 
         mockMvc.perform(postRequest)
-        .andDo(print())
-        .andExpect(status().isUnauthorized());
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -344,13 +354,13 @@ public class NoteControllerTest {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
 
         MockHttpServletRequestBuilder postRequest = post("/vaults/1/notes")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(notesPostDTO));
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(notesPostDTO));
 
         mockMvc.perform(postRequest)
-        .andDo(print())
-        .andExpect(status().isNotFound());
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------------------------------------------\\
@@ -373,12 +383,12 @@ public class NoteControllerTest {
         given(noteRepository.findById(1L)).willReturn(Optional.of(note));
 
         MockHttpServletRequestBuilder deleteRequest = delete("/notes/1")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON);
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(deleteRequest)
-            .andDo(print())
-            .andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -387,12 +397,12 @@ public class NoteControllerTest {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
 
         MockHttpServletRequestBuilder deleteRequest = delete("/notes/1")
-        .header("Authorization", "Bearer invalidToken")
-        .contentType(MediaType.APPLICATION_JSON);
+                .header("Authorization", "Bearer invalidToken")
+                .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(deleteRequest)
-            .andDo(print())
-            .andExpect(status().isUnauthorized());
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -403,15 +413,16 @@ public class NoteControllerTest {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
 
         MockHttpServletRequestBuilder deleteRequest = delete("/notes/1")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON);
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(deleteRequest)
-            .andDo(print())
-            .andExpect(status().isNotFound());
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
-// Test Fails beacause it expects 401 Unauthrized but gets 403 Forbidden: 
-    @Test 
+
+    // Test Fails beacause it expects 401 Unauthrized but gets 403 Forbidden:
+    @Test
     public void deleteNote_userIsNotOwner_Unauthorized() throws Exception {
 
         User owner = new User();
@@ -428,12 +439,12 @@ public class NoteControllerTest {
         given(noteRepository.findById(2L)).willReturn(Optional.of(note));
 
         MockHttpServletRequestBuilder deleteRequest = delete("/notes/2")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON);
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(deleteRequest)
-            .andDo(print())
-            .andExpect(status().isForbidden());// Change to .isForbidden?
+                .andDo(print())
+                .andExpect(status().isForbidden());// Change to .isForbidden?
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------------------------------------------\\
@@ -451,13 +462,13 @@ public class NoteControllerTest {
 
 
         MockHttpServletRequestBuilder postRequest = post("/notes/1/invite")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(asJsonString(notesInvitePostDTO));
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(notesInvitePostDTO));
 
         mockMvc.perform(postRequest)
-            .andDo(print())
-            .andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     // -------------------------------------------------------------------------------------------------------------------------------------------------------------------\\
@@ -474,12 +485,12 @@ public class NoteControllerTest {
 
 
         MockHttpServletRequestBuilder getRequest = get("/notes/1/permissions")
-        .header("Authorization", "Bearer validToken")
-        .contentType(MediaType.APPLICATION_JSON);
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(getRequest)
-            .andDo(print())
-            .andExpect(status().isOk());
+                .andDo(print())
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -488,11 +499,173 @@ public class NoteControllerTest {
         given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
 
         MockHttpServletRequestBuilder getRequest = get("/notes/1/permissions")
-        .header("Authorization", "Bearer invalidToken")
-        .contentType(MediaType.APPLICATION_JSON);
+                .header("Authorization", "Bearer invalidToken")
+                .contentType(MediaType.APPLICATION_JSON);
 
         mockMvc.perform(getRequest)
-            .andDo(print())
-            .andExpect(status().isUnauthorized());
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
+
+    // Additional tests for NoteControllerTest.java
+
+    @Test
+    public void createNoteLink_validInput_Created() throws Exception {
+        // Setup
+        Vault vault = new Vault();
+        vault.setId(1L);
+
+        Note sourceNote = new Note();
+        sourceNote.setId(1L);
+        Note targetNote = new Note();
+        targetNote.setId(2L);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(vaultRepository.findById(1L)).willReturn(Optional.of(vault));
+        given(noteRepository.findById(1L)).willReturn(Optional.of(sourceNote));
+        given(noteRepository.findById(2L)).willReturn(Optional.of(targetNote));
+
+        MockHttpServletRequestBuilder postRequest = post("/vaults/1/note_links")
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"source\":\"1\", \"target\":\"2\"}");
+
+        mockMvc.perform(postRequest)
+                .andExpect(status().isCreated());
+    }
+    @Test
+    public void getNote_validInput_Ok() throws Exception {
+        Note note = new Note();
+        note.setId(1L);
+        note.setTitle("MyNote");
+        Vault vault = new Vault();
+        vault.setOwner(new User());
+        note.setVault(vault);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteRepository.findById(1L)).willReturn(Optional.of(note));
+
+        MockHttpServletRequestBuilder getRequest = get("/notes/1")
+                .header("Authorization", "Bearer validToken");
+
+        mockMvc.perform(getRequest)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.title", is("MyNote")));
+    }
+    @Test
+    public void getNote_noteNotFound_NotFound() throws Exception {
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteRepository.findById(1L)).willReturn(Optional.empty());
+
+        MockHttpServletRequestBuilder getRequest = get("/notes/1")
+                .header("Authorization", "Bearer validToken");
+
+        mockMvc.perform(getRequest)
+                .andExpect(status().isNotFound());
+    }
+    @Test
+    public void renameNote_validInput_Ok() throws Exception {
+        Note note = new Note();
+        Vault vault = new Vault();
+        User owner = new User();
+        owner.setId(1L);
+        vault.setOwner(owner);
+        note.setVault(vault);
+        note.setId(1L);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteRepository.findById(1L)).willReturn(Optional.of(note));
+
+        MockHttpServletRequestBuilder putRequest = put("/notes/1")
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"Updated Title\"}");
+
+        mockMvc.perform(putRequest)
+                .andExpect(status().isOk())
+                .andExpect(content().string("Title updated"));
+    }
+    @Test
+    public void renameNote_userIsNotOwner_Forbidden() throws Exception {
+        Note note = new Note();
+        Vault vault = new Vault();
+        User owner = new User();
+        owner.setId(2L); // Not same as token user
+        vault.setOwner(owner);
+        note.setVault(vault);
+        note.setId(1L);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteRepository.findById(1L)).willReturn(Optional.of(note));
+
+        MockHttpServletRequestBuilder putRequest = put("/notes/1")
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"New Title\"}");
+
+        mockMvc.perform(putRequest)
+                .andExpect(status().isForbidden());
+    }
+    @Test
+    public void renameNote_emptyTitle_BadRequest() throws Exception {
+        Note note = new Note();
+        Vault vault = new Vault();
+        User owner = new User();
+        owner.setId(1L);
+        vault.setOwner(owner);
+        note.setVault(vault);
+        note.setId(1L);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteRepository.findById(1L)).willReturn(Optional.of(note));
+
+        MockHttpServletRequestBuilder putRequest = put("/notes/1")
+                .header("Authorization", "Bearer validToken")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"title\":\"\"}");
+
+        mockMvc.perform(putRequest)
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Title cannot be empty"));
+    }
+    @Test
+    public void getSharedNotes_validInput_Ok() throws Exception {
+        Note note = new Note();
+        note.setId(1L);
+        note.setTitle("SharedNote");
+        Vault vault = new Vault();
+        vault.setId(1L);
+        vault.setOwner(new User());
+        note.setVault(vault);
+
+        given(jwtUtil.extractId(Mockito.anyString())).willReturn("1");
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(true);
+        given(noteService.getSharedNotesForUser(1L)).willReturn(List.of(note));
+
+        MockHttpServletRequestBuilder getRequest = get("/notes/shared")
+                .header("Authorization", "Bearer validToken");
+
+        mockMvc.perform(getRequest)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id", is(1)))
+                .andExpect(jsonPath("$[0].title", is("SharedNote")));
+    }
+    @Test
+    public void getSharedNotes_invalidToken_Unauthorized() throws Exception {
+        given(jwtUtil.validateToken(Mockito.anyString(), Mockito.eq("1"))).willReturn(false);
+
+        MockHttpServletRequestBuilder getRequest = get("/notes/shared")
+                .header("Authorization", "Bearer invalidToken");
+
+        mockMvc.perform(getRequest)
+                .andExpect(status().isUnauthorized());
+    }
+
 }
