@@ -53,11 +53,30 @@ let encoding, decoding;
     });
 
 // GetYDoc
-    const getYDoc = (docName) => {
+    const getYDoc = async (docName) => {
         console.log(`[getYDoc] Request for doc "${docName}"`);
         if (!docs.has(docName)) {
             const doc = new Y.Doc();
             docs.set(docName, doc);
+
+            await axios.get(`${API_BASE_URL}/notes/${docName}/state`, {
+                responseType: 'arraybuffer',
+                validateStatus: (status) => status === 200 || status === 404
+            }).then(res => {
+                if (res.status === 200 && res.data.byteLength > 0) {
+                    try {
+                        const update = new Uint8Array(res.data);
+                        console.log(`[INIT] Loading initial state to ${docName} (${doc.get('markdown')}): ${update}, length: ${update.byteLength}`);
+                        Y.applyUpdate(doc, update);
+                        console.log(`[INIT] Applied Initial state to ${docName} (${doc.get('markdown')})`);
+                    } catch (err) {
+                        console.error(`[INIT ERR] Corrupt initial state for ${docName} - resetting`);
+                        docs.delete(docName);
+                        doc.destroy();
+                        getYDoc(docName);
+                    }
+                }
+            }).catch(console.error);
 
             // Observe updates
             doc.on('update', (update, origin) => {
@@ -81,24 +100,6 @@ let encoding, decoding;
             const debouncedPersist = debounce(persist, 2000);
             pendingSaves.set(docName, debouncedPersist);
 
-            axios.get(`${API_BASE_URL}/notes/${docName}/state`, {
-                responseType: 'arraybuffer',
-                validateStatus: (status) => status === 200 || status === 404
-            }).then(res => {
-                if (res.status === 200 && res.data.byteLength > 0) {
-                    try {
-                        const update = new Uint8Array(res.data);
-                        Y.applyUpdate(doc, update);
-                    } catch (err) {
-                        console.error(`Corrupt initial state for ${docName} - resetting`);
-                        docs.delete(docName);
-                        doc.destroy();
-                        getYDoc(docName);
-                    }
-                }
-            }).catch(console.error);
-
-
             doc.on('destroy', () => {
                 debouncedPersist.cancel();
                 pendingSaves.delete(docName);
@@ -108,10 +109,10 @@ let encoding, decoding;
     };
 
 // Connection handling
-    wss.on('connection', (ws, req) => {
+    wss.on('connection', async (ws, req) => {
         const docName = req.url.slice(1).split('?')[0];
         console.log(`[CONNECT] ${docName}`);
-        const doc = getYDoc(docName);
+        const doc = await getYDoc(docName);
 
         setupWSConnection(ws, req, {
             doc,
@@ -137,7 +138,7 @@ let encoding, decoding;
                     console.log(`[WS] Unknown message type: ${messageType}`);
                 }
             } catch (e) {
-                console.error('[WS ERROR]', e);
+                console.error('[WS ERROR] for this message:', message);
             }
         });
         ws.on('error', (err) => {
